@@ -31,7 +31,7 @@ export type ChartType = 'bar' | 'line';
 
 export type NavSection = 'dashboard' | 'add' | 'analysis' | 'history' | 'settings';
 
-export type StorageMode = 'sheets' | 'local';
+export type StorageMode = 'cloud' | 'sheets' | 'local';
 
 export interface HistoryFilters {
   search: string;
@@ -80,6 +80,8 @@ export interface PeriodAnalysisResult {
 export interface GoogleConnectionState {
   authProvider: 'firebase' | 'gis' | 'none';
   isSignedIn: boolean;
+  uid: string | null;
+  hasSheetsToken: boolean;
   userEmail: string | null;
   userName: string | null;
   spreadsheetId: string | null;

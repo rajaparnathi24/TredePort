@@ -1,0 +1,122 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private user sync profile storing cross-device Google Sheets linkage for an authenticated trading tracker account.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the account owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "spreadsheetId": {
+          "type": "string",
+          "description": "Linked Google Spreadsheet ID synced across devices (empty string if unconnected).",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]*$"
+        },
+        "spreadsheetTitle": {
+          "type": "string",
+          "description": "Display title of the linked Google Spreadsheet.",
+          "maxLength": 200
+        },
+        "spreadsheetUrl": {
+          "type": "string",
+          "description": "Direct HTTPS URL to the linked Google Spreadsheet.",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the user sync profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the user sync profile was last updated."
+        }
+      },
+      "required": [
+        "ownerId",
+        "spreadsheetId",
+        "spreadsheetTitle",
+        "spreadsheetUrl",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "TradeEntry": {
+      "title": "TradeEntry",
+      "description": "Personal trading profit record storing the user's 50% profit share directly and optional capital used.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique trade record identifier matching the document ID.",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the trade record owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "tradeDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Trade date stored consistently as YYYY-MM-DD.",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "myProfit": {
+          "type": "number",
+          "description": "User's net 50% profit share in INR (never divided by 2)."
+        },
+        "capitalUsed": {
+          "type": "number",
+          "description": "Optional capital used in INR (null if not recorded; never treated as zero when missing)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the trade record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the trade record was last modified."
+        }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "tradeDate",
+        "myProfit",
+        "capitalUsed",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Owner-only sync profile document storing the authenticated user's linked Google Spreadsheet metadata."
+    },
+    "/users/{userId}/trades/{tradeId}": {
+      "schema": {
+        "$ref": "#/entities/TradeEntry"
+      },
+      "description": "Owner-only subcollection of trading profit entries synced in real time across mobile and desktop for the signed-in Google account."
+    }
+  }
+}

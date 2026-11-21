@@ -160,7 +160,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {metrics.totalEntries}
             </p>
             <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">
-              {storageMode === 'sheets' ? 'Synced with Sheets' : 'Local storage'}
+              {storageMode === 'sheets'
+                ? 'Cloud + Sheets'
+                : storageMode === 'cloud'
+                  ? 'Synced across devices'
+                  : 'Local storage'}
             </p>
           </div>
 

@@ -77,8 +77,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
               Sign in to your account
             </h1>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              Sign in with Google to sync your 50% trading profit share, capital records, and ROI
-              analytics directly with your permanent Google Sheets database.
+              Sign in with the same Google email on mobile and desktop to automatically store and
+              sync your 50% trading profit share, dashboard, and history in real time—plus optional
+              Google Sheets export.
             </p>
           </div>
 

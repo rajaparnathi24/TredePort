@@ -1,36 +1,22 @@
-import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import {
-  getAuth,
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
-  type Auth,
   type User,
 } from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
+import { firebaseConfig, getFirebaseAuth, hasValidFirebaseConfig } from './firebaseClient';
 
 export const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
 export interface GoogleAuthUser {
+  uid: string | null;
   email: string | null;
   displayName: string | null;
 }
 
 export interface GoogleSignInResult {
   user: GoogleAuthUser;
-  accessToken: string;
-}
-
-function hasValidFirebaseConfig(): boolean {
-  return Boolean(
-    firebaseConfig &&
-      typeof firebaseConfig.apiKey === 'string' &&
-      firebaseConfig.apiKey.length > 0 &&
-      typeof firebaseConfig.authDomain === 'string' &&
-      firebaseConfig.authDomain.length > 0 &&
-      typeof firebaseConfig.projectId === 'string' &&
-      firebaseConfig.projectId.length > 0
-  );
+  accessToken: string | null;
 }
 
 function getGisClientId(): string | null {
@@ -50,28 +36,17 @@ export function getAuthProviderType(): 'firebase' | 'gis' | 'none' {
 // Strict in-memory token cache — NEVER persisted to localStorage or sessionStorage.
 let cachedAccessToken: string | null = null;
 let cachedUser: GoogleAuthUser | null = null;
-let isSigningIn = false;
-let firebaseApp: FirebaseApp | null = null;
-let firebaseAuth: Auth | null = null;
-
-function ensureFirebaseAuth(): Auth | null {
-  if (firebaseAuth) return firebaseAuth;
-  if (!hasValidFirebaseConfig()) return null;
-  const existing = getApps();
-  firebaseApp = existing.length > 0 ? existing[0] : initializeApp(firebaseConfig);
-  firebaseAuth = getAuth(firebaseApp);
-  return firebaseAuth;
-}
 
 /**
  * Initializes authentication state listener on app mount.
- * Clears in-memory token automatically on sign-out.
+ * Preserves Firebase Auth session across reloads and devices for real-time Cloud Firestore sync,
+ * while keeping the Google Sheets OAuth access token strictly in memory.
  */
 export function initGoogleAuth(
-  onAuthSuccess: (user: GoogleAuthUser, token: string) => void,
+  onAuthSuccess: (user: GoogleAuthUser, token: string | null) => void,
   onAuthCleared: () => void
 ): () => void {
-  const auth = ensureFirebaseAuth();
+  const auth = getFirebaseAuth();
   if (!auth) {
     if (cachedAccessToken && cachedUser) {
       onAuthSuccess(cachedUser, cachedAccessToken);
@@ -83,14 +58,12 @@ export function initGoogleAuth(
 
   return onAuthStateChanged(auth, (user: User | null) => {
     if (user) {
-      if (cachedAccessToken) {
-        cachedUser = { email: user.email, displayName: user.displayName };
-        onAuthSuccess(cachedUser, cachedAccessToken);
-      } else if (!isSigningIn) {
-        cachedAccessToken = null;
-        cachedUser = null;
-        onAuthCleared();
-      }
+      cachedUser = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+      };
+      onAuthSuccess(cachedUser, cachedAccessToken);
     } else {
       cachedAccessToken = null;
       cachedUser = null;
@@ -132,9 +105,11 @@ function loadGisScript(): Promise<void> {
     const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
     if (existing) {
       existing.addEventListener('load', () => resolve(), { once: true });
-      existing.addEventListener('error', () => reject(new Error('Failed to load Google Identity Services.')), {
-        once: true,
-      });
+      existing.addEventListener(
+        'error',
+        () => reject(new Error('Failed to load Google Identity Services.')),
+        { once: true }
+      );
       return;
     }
     const script = document.createElement('script');
@@ -169,7 +144,7 @@ async function signInWithGis(clientId: string): Promise<GoogleSignInResult> {
           return;
         }
         cachedAccessToken = response.access_token;
-        cachedUser = { email: null, displayName: 'Google Account' };
+        cachedUser = { uid: null, email: null, displayName: 'Google Account' };
         resolve({ user: cachedUser, accessToken: response.access_token });
       },
       error_callback: (err) => {
@@ -209,9 +184,11 @@ function formatGoogleAuthError(err: unknown): Error {
 
 /**
  * Initiates interactive Google OAuth 2.0 sign-in (must be triggered from a user button click).
+ * Signs the user into Firebase Auth (persistent cross-device Cloud Firestore sync) and
+ * requests the Google Sheets scope for live spreadsheet syncing (kept in memory only).
  */
 export async function signInWithGoogle(): Promise<GoogleSignInResult> {
-  const auth = ensureFirebaseAuth();
+  const auth = getFirebaseAuth();
   if (auth) {
     const provider = new GoogleAuthProvider();
     for (const scope of SCOPES) {
@@ -219,14 +196,11 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
     }
 
     try {
-      isSigningIn = true;
       const result = await signInWithPopup(auth, provider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
-      if (!credential?.accessToken) {
-        throw new Error('Google sign-in succeeded, but no Sheets access token was returned.');
-      }
-      cachedAccessToken = credential.accessToken;
+      cachedAccessToken = credential?.accessToken ?? null;
       cachedUser = {
+        uid: result.user.uid,
         email: result.user.email,
         displayName: result.user.displayName,
       };
@@ -236,8 +210,6 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
       };
     } catch (err) {
       throw formatGoogleAuthError(err);
-    } finally {
-      isSigningIn = false;
     }
   }
 
@@ -264,7 +236,7 @@ export async function signOutGoogle(): Promise<void> {
   cachedAccessToken = null;
   cachedUser = null;
 
-  const auth = ensureFirebaseAuth();
+  const auth = getFirebaseAuth();
   if (auth) {
     await auth.signOut();
     return;

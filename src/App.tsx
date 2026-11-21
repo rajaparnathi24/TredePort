@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import type {
   GoogleConnectionState,
@@ -24,6 +24,16 @@ import {
   updateTradeRecordInSheet,
   verifyAndInitializeSpreadsheet,
 } from './services/googleSheets';
+import {
+  createCloudTrade,
+  deleteCloudTrade,
+  ensureUserProfile,
+  saveUserSpreadsheetMeta,
+  subscribeUserProfile,
+  subscribeUserTrades,
+  syncRecordsToCloud,
+  updateCloudTrade,
+} from './services/firestoreService';
 import {
   createTradeId,
   loadLocalRecords,
@@ -61,15 +71,42 @@ function hasAutostartParam(): boolean {
   }
 }
 
+function formatCloudError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  const lower = raw.toLowerCase();
+  if (lower.includes('resource-exhausted') || lower.includes('quota')) {
+    return 'Cloud database quota was temporarily reached. Please retry in a few moments.';
+  }
+  try {
+    const parsed = JSON.parse(raw) as { error?: string };
+    if (parsed && typeof parsed.error === 'string') {
+      if (parsed.error.toLowerCase().includes('permission')) {
+        return 'Cloud sync permission check failed. Please sign out and sign in again with your Google account.';
+      }
+      return parsed.error;
+    }
+  } catch {
+    // Not a JSON-serialized Firestore error
+  }
+  return raw || 'Unable to sync with your cloud account.';
+}
+
 export const App: React.FC = () => {
   const [hasEnteredApp, setHasEnteredApp] = useState<boolean>(() => hasAutostartParam());
   const [activeSection, setActiveSection] = useState<NavSection>('dashboard');
   const [theme, setTheme] = useState<ThemeMode>(() => loadInitialTheme());
   const [localEntries, setLocalEntries] = useState<TradeRecord[]>(() => loadLocalRecords());
+  const [cloudEntries, setCloudEntries] = useState<TradeRecord[]>([]);
   const [sheetEntries, setSheetEntries] = useState<TradeRecord[]>([]);
+  const [isLoadingCloud, setIsLoadingCloud] = useState(false);
   const [isLoadingSheet, setIsLoadingSheet] = useState(false);
   const [isAuthBusy, setIsAuthBusy] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const cloudEntriesRef = useRef<TradeRecord[]>([]);
+  useEffect(() => {
+    cloudEntriesRef.current = cloudEntries;
+  }, [cloudEntries]);
 
   useEffect(() => {
     const isDark = theme === 'dark';
@@ -91,6 +128,8 @@ export const App: React.FC = () => {
     return {
       authProvider: getAuthProviderType(),
       isSignedIn: false,
+      uid: null,
+      hasSheetsToken: false,
       userEmail: null,
       userName: null,
       spreadsheetId: savedMeta?.spreadsheetId ?? null,
@@ -100,27 +139,41 @@ export const App: React.FC = () => {
     };
   });
 
-  const storageMode: StorageMode =
-    googleState.isSignedIn && Boolean(googleState.spreadsheetId) ? 'sheets' : 'local';
+  const isCloudAccount = Boolean(googleState.isSignedIn && googleState.uid);
 
-  const entries = storageMode === 'sheets' ? sheetEntries : localEntries;
+  const storageMode: StorageMode =
+    googleState.isSignedIn && googleState.hasSheetsToken && Boolean(googleState.spreadsheetId)
+      ? 'sheets'
+      : isCloudAccount
+        ? 'cloud'
+        : 'local';
+
+  const entries = isCloudAccount
+    ? cloudEntries
+    : storageMode === 'sheets'
+      ? sheetEntries
+      : localEntries;
+
+  const isLoadingData = (isLoadingCloud || isLoadingSheet) && entries.length === 0;
 
   const handleSheetsError = useCallback((err: unknown): never => {
     if (err instanceof GoogleSheetsError && err.status === 401) {
       clearCachedAccessToken();
       setGoogleState((prev) => ({
         ...prev,
-        isSignedIn: false,
+        hasSheetsToken: false,
       }));
     }
     throw err;
   }, []);
 
   const syncFromGoogleSheet = useCallback(
-    async (spreadsheetId: string, explicitToken?: string) => {
+    async (spreadsheetId: string, explicitToken?: string, explicitUid?: string | null) => {
       const token = explicitToken || getAccessToken();
       if (!token) {
-        throw new Error('Your Google session is not active. Please sign in again in Settings.');
+        throw new Error(
+          'Your Google Sheets session token needs to be refreshed. Click "Reconnect Google Sheets" in Settings.'
+        );
       }
       setIsLoadingSheet(true);
       setGlobalError(null);
@@ -128,13 +181,24 @@ export const App: React.FC = () => {
         const info = await verifyAndInitializeSpreadsheet(token, spreadsheetId);
         const records = await fetchTradeRecords(token, info.spreadsheetId);
         setSheetEntries(records);
-        saveSpreadsheetMeta({
+
+        const meta = {
           spreadsheetId: info.spreadsheetId,
           spreadsheetTitle: info.title,
           spreadsheetUrl: info.spreadsheetUrl,
-        });
+        };
+        saveSpreadsheetMeta(meta);
+
+        const activeUid = explicitUid ?? googleState.uid;
+        if (activeUid) {
+          await saveUserSpreadsheetMeta(activeUid, meta);
+          const existingIds = new Set(cloudEntriesRef.current.map((r) => r.id));
+          await syncRecordsToCloud(activeUid, records, existingIds);
+        }
+
         setGoogleState((prev) => ({
           ...prev,
+          hasSheetsToken: true,
           spreadsheetId: info.spreadsheetId,
           spreadsheetTitle: info.title,
           spreadsheetUrl: info.spreadsheetUrl,
@@ -149,38 +213,114 @@ export const App: React.FC = () => {
         setIsLoadingSheet(false);
       }
     },
-    [handleSheetsError]
+    [googleState.uid, handleSheetsError]
   );
 
-  // Initialize auth listener on mount
+  // Initialize Firebase Auth / GIS auth listener on mount
   useEffect(() => {
     const unsubscribe = initGoogleAuth(
       (user, token) => {
         setGoogleState((prev) => ({
           ...prev,
           isSignedIn: true,
+          uid: user.uid,
+          hasSheetsToken: Boolean(token),
           userEmail: user.email,
           userName: user.displayName,
         }));
         setHasEnteredApp(true);
-        const savedMeta = loadSavedSpreadsheetMeta();
-        if (savedMeta?.spreadsheetId) {
-          syncFromGoogleSheet(savedMeta.spreadsheetId, token).catch(() => {
-            // Handled via globalError state
-          });
-        }
       },
       () => {
+        setCloudEntries([]);
+        setSheetEntries([]);
+        setIsLoadingCloud(false);
         setGoogleState((prev) => ({
           ...prev,
           isSignedIn: false,
+          uid: null,
+          hasSheetsToken: false,
           userEmail: null,
           userName: null,
         }));
       }
     );
     return unsubscribe;
-  }, [syncFromGoogleSheet]);
+  }, []);
+
+  // Real-time Cloud Firestore subscription whenever signed into a Firebase Google account
+  useEffect(() => {
+    const uid = googleState.uid;
+    if (!googleState.isSignedIn || !uid) {
+      return;
+    }
+
+    let cancelled = false;
+    let unsubProfile: (() => void) | null = null;
+    let unsubTrades: (() => void) | null = null;
+
+    setIsLoadingCloud(true);
+    setGlobalError(null);
+
+    const startSync = async () => {
+      try {
+        await ensureUserProfile(uid);
+        if (cancelled) return;
+
+        unsubProfile = subscribeUserProfile(
+          uid,
+          (meta) => {
+            if (cancelled) return;
+            if (meta && meta.spreadsheetId) {
+              saveSpreadsheetMeta(meta);
+              setGoogleState((prev) => ({
+                ...prev,
+                spreadsheetId: meta.spreadsheetId,
+                spreadsheetTitle: meta.spreadsheetTitle || prev.spreadsheetTitle,
+                spreadsheetUrl: meta.spreadsheetUrl || prev.spreadsheetUrl,
+              }));
+            }
+          },
+          (err) => {
+            if (!cancelled) {
+              setGlobalError(formatCloudError(err));
+            }
+          }
+        );
+
+        unsubTrades = subscribeUserTrades(
+          uid,
+          (records) => {
+            if (cancelled) return;
+            setCloudEntries(records);
+            setIsLoadingCloud(false);
+            setGoogleState((prev) => ({
+              ...prev,
+              lastSyncedAt: new Date().toISOString(),
+            }));
+          },
+          (err) => {
+            if (!cancelled) {
+              setIsLoadingCloud(false);
+              setGlobalError(formatCloudError(err));
+            }
+          }
+        );
+      } catch (err) {
+        if (!cancelled) {
+          setIsLoadingCloud(false);
+          setGlobalError(formatCloudError(err));
+        }
+      }
+    };
+
+    void startSync();
+
+    return () => {
+      cancelled = true;
+      if (unsubProfile) unsubProfile();
+      if (unsubTrades) unsubTrades();
+    };
+  }, [googleState.isSignedIn, googleState.uid]);
 
   const handleGoogleSignIn = async () => {
     setIsAuthBusy(true);
@@ -190,13 +330,19 @@ export const App: React.FC = () => {
       setGoogleState((prev) => ({
         ...prev,
         isSignedIn: true,
+        uid: result.user.uid,
+        hasSheetsToken: Boolean(result.accessToken),
         userEmail: result.user.email,
         userName: result.user.displayName,
       }));
       setHasEnteredApp(true);
+
       const savedMeta = loadSavedSpreadsheetMeta();
-      if (savedMeta?.spreadsheetId) {
-        await syncFromGoogleSheet(savedMeta.spreadsheetId, result.accessToken);
+      const targetSheetId = googleState.spreadsheetId || savedMeta?.spreadsheetId;
+      if (targetSheetId && result.accessToken) {
+        syncFromGoogleSheet(targetSheetId, result.accessToken, result.user.uid).catch(() => {
+          // Non-fatal: Firestore cloud sync still loads immediately
+        });
       }
     } finally {
       setIsAuthBusy(false);
@@ -206,10 +352,13 @@ export const App: React.FC = () => {
   const handleGoogleSignOut = async () => {
     setGlobalError(null);
     await signOutGoogle();
+    setCloudEntries([]);
     setSheetEntries([]);
     setGoogleState((prev) => ({
       ...prev,
       isSignedIn: false,
+      uid: null,
+      hasSheetsToken: false,
       userEmail: null,
       userName: null,
       lastSyncedAt: null,
@@ -220,20 +369,31 @@ export const App: React.FC = () => {
   const handleCreateSpreadsheet = async () => {
     const token = getAccessToken();
     if (!token) {
-      throw new Error('Please sign in with Google before creating a spreadsheet.');
+      throw new Error(
+        'Please click "Reconnect Google Sheets" first so this session has permission to create a spreadsheet.'
+      );
     }
     setIsLoadingSheet(true);
     setGlobalError(null);
     try {
       const created = await createTradeSpreadsheet(token, 'My Trading Profit Tracker');
-      saveSpreadsheetMeta({
+      const meta = {
         spreadsheetId: created.spreadsheetId,
         spreadsheetTitle: created.title,
         spreadsheetUrl: created.spreadsheetUrl,
-      });
-      setSheetEntries([]);
+      };
+      saveSpreadsheetMeta(meta);
+      if (googleState.uid) {
+        await saveUserSpreadsheetMeta(googleState.uid, meta);
+        // Copy any existing cloud entries into the newly created Google Sheet
+        for (const existingRecord of cloudEntriesRef.current) {
+          await appendTradeRecord(token, created.spreadsheetId, existingRecord);
+        }
+      }
+      setSheetEntries(cloudEntriesRef.current);
       setGoogleState((prev) => ({
         ...prev,
+        hasSheetsToken: true,
         spreadsheetId: created.spreadsheetId,
         spreadsheetTitle: created.title,
         spreadsheetUrl: created.spreadsheetUrl,
@@ -255,21 +415,39 @@ export const App: React.FC = () => {
     await syncFromGoogleSheet(googleState.spreadsheetId);
   };
 
-  const handleMigrateLocalToSheet = async () => {
-    const token = getAccessToken();
-    if (!token || !googleState.spreadsheetId) {
-      throw new Error('Connect a Google Spreadsheet before copying local entries.');
+  const handleMigrateLocalToCloud = async () => {
+    if (!googleState.isSignedIn) {
+      throw new Error('Sign in with Google before copying local entries.');
     }
     setIsLoadingSheet(true);
+    setGlobalError(null);
     try {
-      const existingIds = new Set(sheetEntries.map((r) => r.id));
-      for (const localRecord of localEntries) {
-        if (!existingIds.has(localRecord.id)) {
-          await appendTradeRecord(token, googleState.spreadsheetId, localRecord);
+      const token = getAccessToken();
+      const canMirrorSheet = Boolean(token && googleState.spreadsheetId);
+
+      if (googleState.uid) {
+        const existingCloudIds = new Set(cloudEntriesRef.current.map((r) => r.id));
+        for (const localRecord of localEntries) {
+          if (!existingCloudIds.has(localRecord.id)) {
+            await createCloudTrade(googleState.uid, localRecord);
+            if (canMirrorSheet && token && googleState.spreadsheetId) {
+              await appendTradeRecord(token, googleState.spreadsheetId, localRecord);
+            }
+          }
         }
+      } else if (canMirrorSheet && token && googleState.spreadsheetId) {
+        const existingIds = new Set(sheetEntries.map((r) => r.id));
+        for (const localRecord of localEntries) {
+          if (!existingIds.has(localRecord.id)) {
+            await appendTradeRecord(token, googleState.spreadsheetId, localRecord);
+          }
+        }
+        const updated = await fetchTradeRecords(token, googleState.spreadsheetId);
+        setSheetEntries(updated);
+      } else {
+        throw new Error('Connect a cloud account or Google Spreadsheet before copying local entries.');
       }
-      const updated = await fetchTradeRecords(token, googleState.spreadsheetId);
-      setSheetEntries(updated);
+
       setLocalEntries([]);
       saveLocalRecords([]);
       setGoogleState((prev) => ({
@@ -277,7 +455,10 @@ export const App: React.FC = () => {
         lastSyncedAt: new Date().toISOString(),
       }));
     } catch (err) {
-      handleSheetsError(err);
+      if (err instanceof GoogleSheetsError) {
+        handleSheetsError(err);
+      }
+      throw new Error(formatCloudError(err));
     } finally {
       setIsLoadingSheet(false);
     }
@@ -293,6 +474,31 @@ export const App: React.FC = () => {
       createdAt: now,
       updatedAt: now,
     };
+
+    if (googleState.isSignedIn && googleState.uid) {
+      try {
+        await createCloudTrade(googleState.uid, newRecord);
+      } catch (err) {
+        throw new Error(formatCloudError(err));
+      }
+
+      // Mirror to Google Sheets if linked & active in-memory token exists
+      const token = getAccessToken();
+      if (token && googleState.spreadsheetId) {
+        try {
+          await appendTradeRecord(token, googleState.spreadsheetId, newRecord);
+        } catch (err) {
+          if (err instanceof GoogleSheetsError && err.status === 401) {
+            clearCachedAccessToken();
+            setGoogleState((prev) => ({ ...prev, hasSheetsToken: false }));
+          }
+          setGlobalError(
+            'Entry saved to your Cloud Account across devices, but Google Sheets mirror needs reconnection in Settings.'
+          );
+        }
+      }
+      return;
+    }
 
     if (storageMode === 'sheets' && googleState.spreadsheetId) {
       const token = getAccessToken();
@@ -332,6 +538,30 @@ export const App: React.FC = () => {
       updatedAt: new Date().toISOString(),
     };
 
+    if (googleState.isSignedIn && googleState.uid) {
+      try {
+        await updateCloudTrade(googleState.uid, updatedRecord);
+      } catch (err) {
+        throw new Error(formatCloudError(err));
+      }
+
+      const token = getAccessToken();
+      if (token && googleState.spreadsheetId) {
+        try {
+          await updateTradeRecordInSheet(token, googleState.spreadsheetId, updatedRecord);
+        } catch (err) {
+          if (err instanceof GoogleSheetsError && err.status === 401) {
+            clearCachedAccessToken();
+            setGoogleState((prev) => ({ ...prev, hasSheetsToken: false }));
+          }
+          setGlobalError(
+            'Entry updated in your Cloud Account across devices, but Google Sheets mirror needs reconnection in Settings.'
+          );
+        }
+      }
+      return;
+    }
+
     if (storageMode === 'sheets' && googleState.spreadsheetId) {
       const token = getAccessToken();
       if (!token) {
@@ -357,6 +587,30 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteEntry = async (id: string) => {
+    if (googleState.isSignedIn && googleState.uid) {
+      try {
+        await deleteCloudTrade(googleState.uid, id);
+      } catch (err) {
+        throw new Error(formatCloudError(err));
+      }
+
+      const token = getAccessToken();
+      if (token && googleState.spreadsheetId) {
+        try {
+          await deleteTradeRecordFromSheet(token, googleState.spreadsheetId, id);
+        } catch (err) {
+          if (err instanceof GoogleSheetsError && err.status === 401) {
+            clearCachedAccessToken();
+            setGoogleState((prev) => ({ ...prev, hasSheetsToken: false }));
+          }
+          setGlobalError(
+            'Entry deleted from your Cloud Account across devices, but Google Sheets mirror needs reconnection in Settings.'
+          );
+        }
+      }
+      return;
+    }
+
     if (storageMode === 'sheets' && googleState.spreadsheetId) {
       const token = getAccessToken();
       if (!token) {
@@ -404,7 +658,7 @@ export const App: React.FC = () => {
       spreadsheetTitle={googleState.spreadsheetTitle}
       isSignedIn={googleState.isSignedIn}
       userEmail={googleState.userEmail}
-      isSyncing={isLoadingSheet}
+      isSyncing={isLoadingSheet || isLoadingCloud}
       onRefreshSheets={() => {
         handleSyncNow().catch(() => {
           // Handled via globalError
@@ -444,7 +698,7 @@ export const App: React.FC = () => {
       {activeSection === 'dashboard' && (
         <DashboardView
           entries={entries}
-          isLoading={isLoadingSheet && entries.length === 0}
+          isLoading={isLoadingData}
           storageMode={storageMode}
           theme={theme}
           onNavigate={setActiveSection}
@@ -462,7 +716,7 @@ export const App: React.FC = () => {
       {activeSection === 'analysis' && (
         <AnalysisView
           entries={entries}
-          isLoading={isLoadingSheet && entries.length === 0}
+          isLoading={isLoadingData}
           theme={theme}
         />
       )}
@@ -470,7 +724,7 @@ export const App: React.FC = () => {
       {activeSection === 'history' && (
         <HistoryView
           entries={entries}
-          isLoading={isLoadingSheet && entries.length === 0}
+          isLoading={isLoadingData}
           storageMode={storageMode}
           onUpdateEntry={handleUpdateEntry}
           onDeleteEntry={handleDeleteEntry}
@@ -484,7 +738,7 @@ export const App: React.FC = () => {
           googleState={googleState}
           localEntriesCount={localEntries.length}
           totalProfitLoss={totalProfitLoss}
-          isSyncing={isLoadingSheet}
+          isSyncing={isLoadingSheet || isLoadingCloud}
           isAuthBusy={isAuthBusy}
           theme={theme}
           onSetTheme={setTheme}
@@ -494,7 +748,7 @@ export const App: React.FC = () => {
           onCreateSpreadsheet={handleCreateSpreadsheet}
           onConnectSpreadsheet={handleConnectSpreadsheet}
           onSyncNow={handleSyncNow}
-          onMigrateLocalToSheet={handleMigrateLocalToSheet}
+          onMigrateLocalToSheet={handleMigrateLocalToCloud}
         />
       )}
     </SidebarLayout>

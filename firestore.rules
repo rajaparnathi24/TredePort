@@ -1,0 +1,189 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 0: Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Hardened Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerified() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidTradeId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Master Gate helper for subcollections (single-doc operations only)
+    function ownsParentUser(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId)) &&
+        get(/databases/$(database)/documents/users/$(userId)).data.ownerId == request.auth.uid;
+    }
+
+    // Entity Validation Blueprint: UserProfile
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll([
+          'ownerId',
+          'spreadsheetId',
+          'spreadsheetTitle',
+          'spreadsheetUrl',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId',
+          'spreadsheetId',
+          'spreadsheetTitle',
+          'spreadsheetUrl',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.ownerId is string &&
+        data.ownerId == request.auth.uid &&
+        data.ownerId == userId &&
+        data.ownerId.size() >= 1 &&
+        data.ownerId.size() <= 128 &&
+        data.ownerId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.spreadsheetId is string &&
+        data.spreadsheetId.size() <= 128 &&
+        data.spreadsheetId.matches('^[a-zA-Z0-9_\\-]*$') &&
+        data.spreadsheetTitle is string &&
+        data.spreadsheetTitle.size() <= 200 &&
+        data.spreadsheetUrl is string &&
+        data.spreadsheetUrl.size() <= 500 &&
+        (data.spreadsheetUrl == '' || data.spreadsheetUrl.matches('^https://docs\\.google\\.com/spreadsheets/.*$')) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // Entity Validation Blueprint: TradeEntry
+    function isValidTradeEntry(data, userId, tradeId) {
+      return data.keys().hasAll([
+          'id',
+          'ownerId',
+          'tradeDate',
+          'myProfit',
+          'capitalUsed',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'ownerId',
+          'tradeDate',
+          'myProfit',
+          'capitalUsed',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.id is string &&
+        data.id == tradeId &&
+        isValidTradeId(data.id) &&
+        data.ownerId is string &&
+        data.ownerId == request.auth.uid &&
+        data.ownerId == userId &&
+        isValidId(data.ownerId) &&
+        data.tradeDate is string &&
+        data.tradeDate.size() == 10 &&
+        data.tradeDate.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        data.myProfit is number &&
+        data.myProfit >= -1000000000 &&
+        data.myProfit <= 1000000000 &&
+        (data.capitalUsed == null || (data.capitalUsed is number && data.capitalUsed >= 0 && data.capitalUsed <= 10000000000)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // Collection 1: /users/{userId} (Private owner-only profile & linked Sheet metadata)
+    match /users/{userId} {
+      allow list: if false;
+
+      allow get: if isOwner(userId) && isValidId(userId);
+
+      allow create: if isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'spreadsheetId',
+          'spreadsheetTitle',
+          'spreadsheetUrl',
+          'updatedAt'
+        ]);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Collection 2: /users/{userId}/trades/{tradeId}
+      match /trades/{tradeId} {
+        // Pillar 8: Secure List Query without get()/exists()
+        allow list: if isOwner(userId) &&
+          existing().ownerId == request.auth.uid;
+
+        allow get: if isOwner(userId) &&
+          isValidId(userId) &&
+          isValidTradeId(tradeId) &&
+          existing().ownerId == request.auth.uid;
+
+        allow create: if isOwner(userId) &&
+          isValidId(userId) &&
+          isValidTradeId(tradeId) &&
+          isValidTradeEntry(incoming(), userId, tradeId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          ownsParentUser(userId);
+
+        allow update: if isOwner(userId) &&
+          isValidId(userId) &&
+          isValidTradeId(tradeId) &&
+          isValidTradeEntry(incoming(), userId, tradeId) &&
+          incoming().id == existing().id &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'tradeDate',
+            'myProfit',
+            'capitalUsed',
+            'updatedAt'
+          ]) &&
+          ownsParentUser(userId);
+
+        allow delete: if isOwner(userId) &&
+          isValidId(userId) &&
+          isValidTradeId(tradeId) &&
+          existing().ownerId == request.auth.uid &&
+          ownsParentUser(userId);
+      }
+    }
+  }
+}

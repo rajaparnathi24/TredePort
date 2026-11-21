@@ -71,7 +71,11 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
       const savedDateText = formatIndianDate(validation.value.tradeDate);
       setSuccessMessage(
         `Saved ${savedProfitText} for ${savedDateText} to ${
-          storageMode === 'sheets' ? 'Google Sheets' : 'local storage'
+          storageMode === 'sheets'
+            ? 'your Cloud Account & Google Sheets'
+            : storageMode === 'cloud'
+              ? 'your Cloud Account (synced across mobile & desktop)'
+              : 'local storage'
         }.`
       );
       setMyProfit('');

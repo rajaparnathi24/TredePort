@@ -104,7 +104,7 @@ const SECTION_TITLES: Record<
   settings: {
     title: 'Settings',
     mobileTitle: 'Settings',
-    subtitle: 'Manage appearance and connect your Google Sheets database',
+    subtitle: 'Manage appearance, cross-device cloud sync, and Google Sheets',
   },
 };
 
@@ -177,8 +177,10 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Database</p>
             <p className="mt-0.5 text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
               {storageMode === 'sheets'
-                ? spreadsheetTitle || 'Google Sheets Connected'
-                : 'Local Browser Storage'}
+                ? spreadsheetTitle || 'Cloud + Google Sheets'
+                : storageMode === 'cloud'
+                  ? 'Cloud Account Sync'
+                  : 'Local Browser Storage'}
             </p>
             {isSignedIn && userEmail && (
               <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">
@@ -192,7 +194,11 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               onClick={() => handleSelectNav('settings')}
               className="text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-emerald-600 rounded"
             >
-              {storageMode === 'sheets' ? 'Manage Sheets' : 'Connect Sheets'}
+              {storageMode === 'sheets'
+                ? 'Manage Sync'
+                : storageMode === 'cloud'
+                  ? 'Link Sheets'
+                  : 'Connect Account'}
             </button>
             {isSignedIn ? (
               <button

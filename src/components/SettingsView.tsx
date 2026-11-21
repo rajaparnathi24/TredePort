@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
   CheckCircle2,
@@ -60,6 +60,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [confirmMigrateOpen, setConfirmMigrateOpen] = useState(false);
+
+  useEffect(() => {
+    if (googleState.spreadsheetId && !sheetInput) {
+      setSheetInput(googleState.spreadsheetId);
+    }
+  }, [googleState.spreadsheetId, sheetInput]);
 
   const runAction = async (fn: () => Promise<void>, successText?: string) => {
     setErrorMessage(null);
@@ -142,12 +148,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800">
           <div>
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-              Google Sheets Database
+              Cloud Sync &amp; Google Sheets Database
             </h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
               {storageMode === 'sheets'
-                ? 'Connected and syncing live records directly with your Google Sheet.'
-                : 'Google Sheets is not connected yet. Entries are currently stored only in this browser.'}
+                ? 'Synced across mobile and desktop via your Google account, with live Google Sheets mirroring.'
+                : storageMode === 'cloud'
+                  ? 'Synced in real time across mobile and desktop whenever you sign in with this Google email.'
+                  : 'Not signed in yet. Entries are currently stored only in this browser.'}
             </p>
           </div>
           <div className="text-left sm:text-right shrink-0">
@@ -155,14 +163,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <p
               data-testid="settings-storage-status"
               className={`mt-0.5 text-sm font-semibold ${
-                storageMode === 'sheets'
+                storageMode === 'sheets' || storageMode === 'cloud'
                   ? 'text-emerald-700 dark:text-emerald-400'
                   : 'text-slate-900 dark:text-slate-100'
               }`}
             >
               {storageMode === 'sheets'
-                ? 'Google Sheets (Connected)'
-                : 'Local Storage (Not Connected)'}
+                ? 'Cloud Sync + Google Sheets'
+                : storageMode === 'cloud'
+                  ? 'Cloud Account Sync (Active)'
+                  : 'Local Storage (Not Connected)'}
             </p>
           </div>
         </div>
@@ -241,18 +251,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           /* Case 2: OAuth configured, user needs to sign in */
           <div className="mt-5 space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              Sign in with your Google account to create or connect your{' '}
+              Sign in with the same Google account on mobile and desktop to sync all your dashboard
+              metrics and trade history automatically in real time, and optionally connect your{' '}
               <strong className="font-semibold text-slate-900 dark:text-slate-100">
                 {TRADE_SHEET_NAME}
               </strong>{' '}
-              spreadsheet. Access tokens are held strictly in memory and are never saved in browser
-              storage.
+              Google Sheet.
             </p>
             <GoogleSignInButton
               onClick={() =>
                 runAction(
                   onGoogleSignIn,
-                  'Signed in with Google. You can now create or connect a spreadsheet.'
+                  'Signed in with Google. Your trade entries now sync automatically across mobile and desktop.'
                 )
               }
               loading={isAuthBusy}
@@ -264,7 +274,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3">
               <div className="text-sm">
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Signed in Google Account
+                  Signed in Google Account (Cross-Device Cloud Sync Active)
                 </p>
                 <p className="font-semibold text-slate-900 dark:text-slate-100">
                   {googleState.userEmail || googleState.userName || 'Connected Google User'}
@@ -272,7 +282,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
               <button
                 type="button"
-                onClick={() => runAction(onGoogleSignOut, 'Signed out of Google Sheets.')}
+                onClick={() => runAction(onGoogleSignOut, 'Signed out of your Google account.')}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
@@ -280,13 +290,60 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </button>
             </div>
 
+            {localEntriesCount > 0 && (
+              <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-slate-700 dark:text-slate-300">
+                  You have <strong className="font-mono">{localEntriesCount}</strong> locally saved{' '}
+                  {localEntriesCount === 1 ? 'entry' : 'entries'} on this device from before signing
+                  in.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setConfirmMigrateOpen(true)}
+                  disabled={isSyncing}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700"
+                >
+                  <Upload className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Copy Local Entries to Cloud</span>
+                </button>
+              </div>
+            )}
+
+            {!googleState.hasSheetsToken && (
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                    Google Sheets Session Token Expired or Reloaded
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Your Cloud Account sync is active across mobile &amp; desktop. Reconnect to also
+                    create, pull, or mirror rows directly to Google Sheets.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    runAction(
+                      onGoogleSignIn,
+                      'Google Sheets session reconnected for this browser session.'
+                    )
+                  }
+                  disabled={isAuthBusy}
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 whitespace-nowrap shrink-0 disabled:opacity-60"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>{isAuthBusy ? 'Connecting...' : 'Reconnect Google Sheets'}</span>
+                </button>
+              </div>
+            )}
+
             {/* Active Spreadsheet Details */}
             {googleState.spreadsheetId && (
               <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 p-4 space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-medium text-emerald-800 dark:text-emerald-400">
-                      Active Spreadsheet
+                      Linked Google Spreadsheet
                     </p>
                     <p className="mt-0.5 text-sm font-semibold text-slate-900 dark:text-slate-100">
                       {googleState.spreadsheetTitle || 'My Trading Profit Tracker'}
@@ -306,14 +363,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onClick={() =>
                         runAction(onSyncNow, 'Refreshed trade records from Google Sheets.')
                       }
-                      disabled={isSyncing}
+                      disabled={isSyncing || !googleState.hasSheetsToken}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60"
                     >
                       <RefreshCw
                         className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`}
                         aria-hidden="true"
                       />
-                      <span>{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
+                      <span>{isSyncing ? 'Syncing...' : 'Sync Sheet Now'}</span>
                     </button>
                     {googleState.spreadsheetUrl && (
                       <a
@@ -328,25 +385,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     )}
                   </div>
                 </div>
-
-                {localEntriesCount > 0 && (
-                  <div className="pt-3 border-t border-emerald-200/80 dark:border-emerald-800/80 flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-xs text-slate-700 dark:text-slate-300">
-                      You have <strong className="font-mono">{localEntriesCount}</strong> locally
-                      saved {localEntriesCount === 1 ? 'entry' : 'entries'} from before connecting
-                      Sheets.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmMigrateOpen(true)}
-                      disabled={isSyncing}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700"
-                    >
-                      <Upload className="w-3.5 h-3.5" aria-hidden="true" />
-                      <span>Copy Local Entries to Sheet</span>
-                    </button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -369,7 +407,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       'Created and initialized your new Google Spreadsheet.'
                     )
                   }
-                  disabled={isSyncing}
+                  disabled={isSyncing || !googleState.hasSheetsToken}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-60"
                 >
                   <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
@@ -401,10 +439,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
                 <button
                   type="submit"
-                  disabled={isSyncing || !sheetInput.trim()}
+                  disabled={isSyncing || !sheetInput.trim() || !googleState.hasSheetsToken}
                   className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
                 >
-                  Connect & Verify Sheet
+                  Connect &amp; Verify Sheet
                 </button>
               </form>
             </div>
@@ -568,13 +606,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               id="migrate-modal-title"
               className="text-base font-semibold text-slate-900 dark:text-slate-100"
             >
-              Copy Local Entries to Google Sheets?
+              Copy Local Entries to Your Cloud Account?
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              This will append <strong className="font-mono">{localEntriesCount}</strong> locally
-              saved {localEntriesCount === 1 ? 'entry' : 'entries'} to your connected{' '}
-              <strong>{TRADE_SHEET_NAME}</strong> sheet. Entries whose ID already exists in the
-              sheet will be skipped.
+              This will copy <strong className="font-mono">{localEntriesCount}</strong> locally
+              saved {localEntriesCount === 1 ? 'entry' : 'entries'} into your synced Google account
+              {googleState.spreadsheetId && googleState.hasSheetsToken
+                ? ` and append them to your connected ${TRADE_SHEET_NAME} Google Sheet`
+                : ''}{' '}
+              so they appear on both mobile and desktop. Duplicate IDs are skipped automatically.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
@@ -590,7 +630,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   setConfirmMigrateOpen(false);
                   await runAction(
                     onMigrateLocalToSheet,
-                    'Copied local entries into your Google Sheet.'
+                    'Copied local entries into your synced Cloud Account.'
                   );
                 }}
                 className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700"

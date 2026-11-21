@@ -504,10 +504,12 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 )}
               </div>
 
-              {storageMode === 'sheets' && (
+              {(storageMode === 'sheets' || storageMode === 'cloud') && (
                 <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2">
-                  Confirming will update row <span className="font-mono">{editingEntry.id}</span> in
-                  your connected Google Sheet.
+                  Confirming will update entry <span className="font-mono">{editingEntry.id}</span>{' '}
+                  {storageMode === 'sheets'
+                    ? 'across your synced devices and connected Google Sheet.'
+                    : 'across all devices signed into your Google account.'}
                 </p>
               )}
 
@@ -562,8 +564,12 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             <div className="p-6 space-y-4">
               <p className="text-sm text-slate-700 dark:text-slate-300">
                 Are you sure you want to permanently delete this entry
-                {storageMode === 'sheets' ? ' from your Google Sheet' : ''}? This action cannot be
-                undone.
+                {storageMode === 'sheets'
+                  ? ' from your synced Cloud Account and Google Sheet'
+                  : storageMode === 'cloud'
+                    ? ' from your synced Cloud Account across all devices'
+                    : ''}
+                ? This action cannot be undone.
               </p>
 
               <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 px-4 py-3 text-sm space-y-1.5">

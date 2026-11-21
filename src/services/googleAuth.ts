@@ -180,6 +180,33 @@ async function signInWithGis(clientId: string): Promise<GoogleSignInResult> {
   });
 }
 
+function formatGoogleAuthError(err: unknown): Error {
+  const code =
+    typeof err === 'object' && err !== null && 'code' in err
+      ? String((err as { code?: unknown }).code || '')
+      : '';
+  const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+  const projectId = firebaseConfig?.projectId || 'your Firebase project';
+
+  if (code === 'auth/unauthorized-domain') {
+    return new Error(
+      `Domain "${host}" is not authorized for Google Sign-In yet. Open Firebase Console (${projectId}) → Authentication → Settings → Authorized domains, click "Add domain", and add "${host}".`
+    );
+  }
+  if (code === 'auth/popup-blocked') {
+    return new Error(
+      'Sign-in popup was blocked by your browser. Please allow popups for this site and try again.'
+    );
+  }
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+    return new Error('Google sign-in was cancelled before completing.');
+  }
+  if (err instanceof Error) {
+    return err;
+  }
+  return new Error('Google sign-in failed. Please try again.');
+}
+
 /**
  * Initiates interactive Google OAuth 2.0 sign-in (must be triggered from a user button click).
  */
@@ -207,6 +234,8 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
         user: cachedUser,
         accessToken: cachedAccessToken,
       };
+    } catch (err) {
+      throw formatGoogleAuthError(err);
     } finally {
       isSigningIn = false;
     }

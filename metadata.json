@@ -1,0 +1,5 @@
+{
+  "name": "My Trading Profit Tracker",
+  "description": "Personal trading profit tracker for recording your 50% profit share, tracking ROI and period performance in Indian Rupees, and syncing permanently with Google Sheets.",
+  "requestFramePermissions": []
+}

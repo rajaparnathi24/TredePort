@@ -102,10 +102,54 @@ function sanitizeSpreadsheetUrl(url: string): string {
   return '';
 }
 
+const ensuredProfiles = new Set<string>();
+const pendingProfileCreates = new Map<string, Promise<void>>();
+
+export function clearEnsuredProfiles(): void {
+  ensuredProfiles.clear();
+  pendingProfileCreates.clear();
+}
+
+async function createUserProfileDoc(uid: string): Promise<void> {
+  const db = getFirebaseDb();
+  if (!db) return;
+
+  const existingPromise = pendingProfileCreates.get(uid);
+  if (existingPromise) {
+    return existingPromise;
+  }
+
+  const path = `users/${uid}`;
+  const ref = doc(db, 'users', uid);
+
+  const task = (async () => {
+    try {
+      await setDoc(ref, {
+        ownerId: uid,
+        spreadsheetId: '',
+        spreadsheetTitle: '',
+        spreadsheetUrl: '',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      ensuredProfiles.add(uid);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, path);
+    } finally {
+      pendingProfileCreates.delete(uid);
+    }
+  })();
+
+  pendingProfileCreates.set(uid, task);
+  return task;
+}
+
 /**
  * Ensures the parent /users/{uid} document exists so subcollection Master Gate rules pass.
  */
 export async function ensureUserProfile(uid: string): Promise<void> {
+  if (ensuredProfiles.has(uid)) return;
+
   const db = getFirebaseDb();
   if (!db) return;
 
@@ -120,24 +164,17 @@ export async function ensureUserProfile(uid: string): Promise<void> {
     handleFirestoreError(error, OperationType.GET, path);
   }
 
-  if (!exists) {
-    try {
-      await setDoc(ref, {
-        ownerId: uid,
-        spreadsheetId: '',
-        spreadsheetTitle: '',
-        spreadsheetUrl: '',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, path);
-    }
+  if (exists) {
+    ensuredProfiles.add(uid);
+    return;
   }
+
+  await createUserProfileDoc(uid);
 }
 
 /**
  * Subscribes in real time to /users/{uid} for cross-device linked Google Spreadsheet metadata.
+ * If the server confirms the profile document does not exist yet, creates it lazily.
  */
 export function subscribeUserProfile(
   uid: string,
@@ -155,8 +192,16 @@ export function subscribeUserProfile(
     (snap) => {
       if (!snap.exists()) {
         onProfile(null);
+        // Once server confirms doc is absent, create parent profile in background
+        if (!snap.metadata.fromCache && !ensuredProfiles.has(uid)) {
+          createUserProfileDoc(uid).catch((err) => {
+            onError(err instanceof Error ? err : new Error(String(err)));
+          });
+        }
         return;
       }
+
+      ensuredProfiles.add(uid);
       const data = snap.data();
       const spreadsheetId = typeof data.spreadsheetId === 'string' ? data.spreadsheetId : '';
       const spreadsheetTitle =

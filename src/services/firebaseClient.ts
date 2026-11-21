@@ -1,6 +1,16 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
-import { doc, getDocFromServer, getFirestore, type Firestore } from 'firebase/firestore';
+import {
+  doc,
+  getDocFromServer,
+  getFirestore,
+  initializeFirestore,
+  memoryLocalCache,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+  type FirestoreLocalCache,
+} from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 export function hasValidFirebaseConfig(): boolean {
@@ -36,16 +46,46 @@ export function getFirebaseAuth(): Auth | null {
   return cachedAuth;
 }
 
+function buildLocalCache(): FirestoreLocalCache {
+  if (typeof window === 'undefined' || typeof indexedDB === 'undefined') {
+    return memoryLocalCache();
+  }
+  try {
+    return persistentLocalCache({
+      tabManager: persistentMultipleTabManager(),
+    });
+  } catch {
+    return memoryLocalCache();
+  }
+}
+
 export function getFirebaseDb(): Firestore | null {
   if (cachedDb) return cachedDb;
   const app = getFirebaseApp();
   if (!app) return null;
+
   const databaseId =
     typeof firebaseConfig.firestoreDatabaseId === 'string' &&
     firebaseConfig.firestoreDatabaseId.trim().length > 0
       ? firebaseConfig.firestoreDatabaseId.trim()
       : undefined;
-  cachedDb = databaseId ? getFirestore(app, databaseId) : getFirestore(app);
+
+  // Use long-polling so proxies, mobile ISPs, antivirus scanners, and iframes
+  // never buffer WebChannel streams indefinitely (fixes 10s backend timeout).
+  try {
+    cachedDb = initializeFirestore(
+      app,
+      {
+        experimentalForceLongPolling: true,
+        localCache: buildLocalCache(),
+      },
+      databaseId
+    );
+  } catch {
+    // Fallback if Firestore was already initialized for this app (e.g., HMR)
+    cachedDb = databaseId ? getFirestore(app, databaseId) : getFirestore(app);
+  }
+
   if (!connectionChecked) {
     connectionChecked = true;
     void testFirestoreConnection(cachedDb);
@@ -62,6 +102,11 @@ async function testFirestoreConnection(db: Firestore): Promise<void> {
     }
     // Skip logging for other errors (e.g., expected permission-denied on test doc)
   }
+}
+
+// Warm up Firebase App & Firestore connection immediately on browser boot
+if (typeof window !== 'undefined' && hasValidFirebaseConfig()) {
+  getFirebaseDb();
 }
 
 export { firebaseConfig };

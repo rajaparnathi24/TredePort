@@ -25,9 +25,9 @@ import {
   verifyAndInitializeSpreadsheet,
 } from './services/googleSheets';
 import {
+  clearEnsuredProfiles,
   createCloudTrade,
   deleteCloudTrade,
-  ensureUserProfile,
   saveUserSpreadsheetMeta,
   subscribeUserProfile,
   subscribeUserTrades,
@@ -77,10 +77,17 @@ function formatCloudError(err: unknown): string {
   if (lower.includes('resource-exhausted') || lower.includes('quota')) {
     return 'Cloud database quota was temporarily reached. Please retry in a few moments.';
   }
+  if (lower.includes('client is offline')) {
+    return 'Unable to reach Cloud Sync right now. Please check your internet connection—your data will sync automatically once reconnected.';
+  }
   try {
     const parsed = JSON.parse(raw) as { error?: string };
     if (parsed && typeof parsed.error === 'string') {
-      if (parsed.error.toLowerCase().includes('permission')) {
+      const parsedLower = parsed.error.toLowerCase();
+      if (parsedLower.includes('client is offline')) {
+        return 'Unable to reach Cloud Sync right now. Please check your internet connection—your data will sync automatically once reconnected.';
+      }
+      if (parsedLower.includes('permission')) {
         return 'Cloud sync permission check failed. Please sign out and sign in again with your Google account.';
       }
       return parsed.error;
@@ -255,70 +262,54 @@ export const App: React.FC = () => {
     }
 
     let cancelled = false;
-    let unsubProfile: (() => void) | null = null;
-    let unsubTrades: (() => void) | null = null;
-
     setIsLoadingCloud(true);
     setGlobalError(null);
 
-    const startSync = async () => {
-      try {
-        await ensureUserProfile(uid);
+    const unsubProfile = subscribeUserProfile(
+      uid,
+      (meta) => {
         if (cancelled) return;
+        if (meta && meta.spreadsheetId) {
+          saveSpreadsheetMeta(meta);
+          setGoogleState((prev) => ({
+            ...prev,
+            spreadsheetId: meta.spreadsheetId,
+            spreadsheetTitle: meta.spreadsheetTitle || prev.spreadsheetTitle,
+            spreadsheetUrl: meta.spreadsheetUrl || prev.spreadsheetUrl,
+          }));
+        }
+      },
+      (err) => {
+        if (!cancelled) {
+          setGlobalError(formatCloudError(err));
+        }
+      }
+    );
 
-        unsubProfile = subscribeUserProfile(
-          uid,
-          (meta) => {
-            if (cancelled) return;
-            if (meta && meta.spreadsheetId) {
-              saveSpreadsheetMeta(meta);
-              setGoogleState((prev) => ({
-                ...prev,
-                spreadsheetId: meta.spreadsheetId,
-                spreadsheetTitle: meta.spreadsheetTitle || prev.spreadsheetTitle,
-                spreadsheetUrl: meta.spreadsheetUrl || prev.spreadsheetUrl,
-              }));
-            }
-          },
-          (err) => {
-            if (!cancelled) {
-              setGlobalError(formatCloudError(err));
-            }
-          }
-        );
-
-        unsubTrades = subscribeUserTrades(
-          uid,
-          (records) => {
-            if (cancelled) return;
-            setCloudEntries(records);
-            setIsLoadingCloud(false);
-            setGoogleState((prev) => ({
-              ...prev,
-              lastSyncedAt: new Date().toISOString(),
-            }));
-          },
-          (err) => {
-            if (!cancelled) {
-              setIsLoadingCloud(false);
-              setGlobalError(formatCloudError(err));
-            }
-          }
-        );
-      } catch (err) {
+    const unsubTrades = subscribeUserTrades(
+      uid,
+      (records) => {
+        if (cancelled) return;
+        setCloudEntries(records);
+        setIsLoadingCloud(false);
+        setGlobalError(null);
+        setGoogleState((prev) => ({
+          ...prev,
+          lastSyncedAt: new Date().toISOString(),
+        }));
+      },
+      (err) => {
         if (!cancelled) {
           setIsLoadingCloud(false);
           setGlobalError(formatCloudError(err));
         }
       }
-    };
-
-    void startSync();
+    );
 
     return () => {
       cancelled = true;
-      if (unsubProfile) unsubProfile();
-      if (unsubTrades) unsubTrades();
+      unsubProfile();
+      unsubTrades();
     };
   }, [googleState.isSignedIn, googleState.uid]);
 
@@ -351,6 +342,7 @@ export const App: React.FC = () => {
 
   const handleGoogleSignOut = async () => {
     setGlobalError(null);
+    clearEnsuredProfiles();
     await signOutGoogle();
     setCloudEntries([]);
     setSheetEntries([]);

@@ -79,7 +79,7 @@ test('missing capital is NEVER treated as zero for ROI calculations', () => {
   assert.equal(calculateEntryROI(5000, 50000), 10);
 });
 
-test('trade input validation enforces positive profit, optional non-negative capital, and valid date', () => {
+test('trade input validation allows profit or negative loss, optional non-negative capital, and valid date', () => {
   const emptyProfit = validateTradeInput({ tradeDate: '2026-11-20', myProfit: '', capitalUsed: '' });
   assert.equal(emptyProfit.valid, false);
   if (!emptyProfit.valid) assert.ok(emptyProfit.errors.myProfit);
@@ -87,8 +87,12 @@ test('trade input validation enforces positive profit, optional non-negative cap
   const zeroProfit = validateTradeInput({ tradeDate: '2026-11-20', myProfit: '0', capitalUsed: '50000' });
   assert.equal(zeroProfit.valid, false);
 
-  const negativeProfit = validateTradeInput({ tradeDate: '2026-11-20', myProfit: '-500', capitalUsed: '' });
-  assert.equal(negativeProfit.valid, false);
+  const negativeLoss = validateTradeInput({ tradeDate: '2026-11-20', myProfit: '-500', capitalUsed: '10000' });
+  assert.equal(negativeLoss.valid, true);
+  if (negativeLoss.valid) {
+    assert.equal(negativeLoss.value.myProfit, -500);
+    assert.equal(calculateEntryROI(negativeLoss.value.myProfit, negativeLoss.value.capitalUsed), -5);
+  }
 
   const negativeCapital = validateTradeInput({ tradeDate: '2026-11-20', myProfit: '5000', capitalUsed: '-1' });
   assert.equal(negativeCapital.valid, false);

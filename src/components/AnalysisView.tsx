@@ -75,8 +75,14 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3.5 py-2.5 text-xs shadow-sm">
         <p className="font-semibold text-slate-900 dark:text-slate-100">{point.fullLabel}</p>
         <div className="mt-1.5 space-y-1 font-mono tabular-nums">
-          <p className="text-emerald-700 dark:text-emerald-400 font-semibold">
-            My Profit: {formatINR(point.profit)}
+          <p
+            className={`font-semibold ${
+              point.profit < 0
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-emerald-700 dark:text-emerald-400'
+            }`}
+          >
+            My Profit / Loss: {formatINR(point.profit)}
           </p>
           <p className="text-slate-600 dark:text-slate-300">
             Capital Used: {point.capital > 0 ? formatINR(point.capital) : '—'}
@@ -196,7 +202,9 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
             className={`mt-2 sm:mt-2.5 text-lg sm:text-2xl font-bold font-mono tabular-nums tracking-tight truncate ${
               analysis.currentProfit > 0
                 ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-slate-900 dark:text-slate-100'
+                : analysis.currentProfit < 0
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-slate-900 dark:text-slate-100'
             }`}
           >
             {formatINR(analysis.currentProfit)}
@@ -265,7 +273,13 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
             {analysis.currentROI !== null ? (
               <>
                 ROI:{' '}
-                <span className="font-mono tabular-nums font-medium text-emerald-700 dark:text-emerald-400">
+                <span
+                  className={`font-mono tabular-nums font-medium ${
+                    analysis.currentROI < 0
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-emerald-700 dark:text-emerald-400'
+                  }`}
+                >
                   {formatPercentage(analysis.currentROI)}
                 </span>
               </>

@@ -44,7 +44,8 @@ function addDaysUTC(date: Date, days: number): Date {
 
 /**
  * Validates trade entry inputs strictly:
- * - Profit must be a valid positive number (> 0). Entered amount is already the user's 50% share.
+ * - Profit / Loss must be a valid non-zero number (positive for profit, negative for loss).
+ *   Entered amount is already the user's 50% share.
  * - Capital is optional; when provided, it must be zero or a positive number (>= 0).
  * - Trade Date must be a valid YYYY-MM-DD calendar date.
  */
@@ -56,9 +57,9 @@ export function validateTradeInput(
   const profitRaw = input.myProfit.trim();
   const parsedProfit = Number(profitRaw);
   if (!profitRaw) {
-    errors.myProfit = 'Please enter your profit amount.';
-  } else if (!Number.isFinite(parsedProfit) || parsedProfit <= 0) {
-    errors.myProfit = 'Profit must be a valid positive number greater than ₹0.';
+    errors.myProfit = 'Please enter your profit or loss amount.';
+  } else if (!Number.isFinite(parsedProfit) || parsedProfit === 0) {
+    errors.myProfit = 'Enter a valid non-zero amount (use a minus sign for loss, e.g. -2500).';
   }
 
   const capitalRaw = input.capitalUsed.trim();

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AlertCircle, CheckCircle2, Save, TrendingUp } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Save, TrendingDown, TrendingUp } from 'lucide-react';
 import type {
   NavSection,
   StorageMode,
@@ -34,8 +34,9 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const preview = useMemo(() => {
-    const p = Number(myProfit.trim());
-    const hasValidProfit = myProfit.trim() !== '' && Number.isFinite(p) && p > 0;
+    const trimmed = myProfit.trim();
+    const p = Number(trimmed);
+    const hasValidProfit = trimmed !== '' && Number.isFinite(p) && p !== 0;
     const cRaw = capitalUsed.trim();
     const c = cRaw === '' ? null : Number(cRaw);
     const hasValidCapital = c !== null && Number.isFinite(c) && c >= 0;
@@ -152,18 +153,24 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
         )}
 
         <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-5">
-          {/* My Profit Amount (₹) */}
+          {/* My Profit / Loss Amount (₹) */}
           <div>
             <div className="flex items-baseline justify-between gap-2">
               <label
                 htmlFor="entry-profit"
                 className="block text-sm font-medium text-slate-900 dark:text-slate-100"
               >
-                My Profit Amount (₹) <span className="text-red-600 dark:text-red-400">*</span>
+                My Profit / Loss Amount (₹) <span className="text-red-600 dark:text-red-400">*</span>
               </label>
               {preview.profitValue !== null && (
-                <span className="text-xs font-mono tabular-nums font-medium text-emerald-700 dark:text-emerald-400">
-                  {formatINR(preview.profitValue)}
+                <span
+                  className={`text-xs font-mono tabular-nums font-medium ${
+                    preview.profitValue < 0
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-emerald-700 dark:text-emerald-400'
+                  }`}
+                >
+                  {formatINR(preview.profitValue, { showSign: true })}
                 </span>
               )}
             </div>
@@ -178,9 +185,7 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 id="entry-profit"
                 name="myProfit"
                 type="number"
-                inputMode="decimal"
                 step="any"
-                min="0.01"
                 required
                 value={myProfit}
                 onChange={(e) => {
@@ -189,9 +194,11 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                     setFieldErrors((prev) => ({ ...prev, myProfit: undefined }));
                   }
                 }}
-                placeholder="e.g. 12500"
+                placeholder="e.g. 12500 or -2500"
                 aria-invalid={Boolean(fieldErrors.myProfit)}
-                aria-describedby={fieldErrors.myProfit ? 'entry-profit-error' : undefined}
+                aria-describedby={
+                  fieldErrors.myProfit ? 'entry-profit-error' : 'entry-profit-help'
+                }
                 className={`block w-full rounded-xl sm:rounded-lg border pl-8 pr-3.5 py-3 sm:py-2.5 text-base sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 ${
                   fieldErrors.myProfit
                     ? 'border-red-400 dark:border-red-500 bg-red-50/30 dark:bg-red-950/30'
@@ -199,13 +206,17 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 }`}
               />
             </div>
-            {fieldErrors.myProfit && (
+            {fieldErrors.myProfit ? (
               <p
                 id="entry-profit-error"
                 role="alert"
                 className="mt-1.5 text-xs text-red-600 dark:text-red-400"
               >
                 {fieldErrors.myProfit}
+              </p>
+            ) : (
+              <p id="entry-profit-help" className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                Enter a positive value for profit or a negative value (e.g. -2500) for a loss.
               </p>
             )}
           </div>
@@ -312,28 +323,54 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
             )}
           </div>
 
-          {/* Live Profit Summary Card */}
+          {/* Live Profit / Loss Summary Card */}
           {preview.profitValue !== null && (
-            <div className="rounded-xl border border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50/60 dark:bg-emerald-950/35 px-4 py-3.5 flex items-center justify-between gap-3">
+            <div
+              className={`rounded-xl border px-4 py-3.5 flex items-center justify-between gap-3 ${
+                preview.profitValue < 0
+                  ? 'border-red-200/80 dark:border-red-900/60 bg-red-50/60 dark:bg-red-950/35'
+                  : 'border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50/60 dark:bg-emerald-950/35'
+              }`}
+            >
               <div className="flex items-center gap-3 min-w-0">
                 <span
-                  className="w-9 h-9 rounded-lg bg-emerald-600/10 dark:bg-emerald-500/15 flex items-center justify-center shrink-0"
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                    preview.profitValue < 0
+                      ? 'bg-red-600/10 dark:bg-red-500/15'
+                      : 'bg-emerald-600/10 dark:bg-emerald-500/15'
+                  }`}
                   aria-hidden="true"
                 >
-                  <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  {preview.profitValue < 0 ? (
+                    <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  ) : (
+                    <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  )}
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                    Profit Summary
+                    {preview.profitValue < 0 ? 'Loss Summary' : 'Profit Summary'}
                   </p>
-                  <p className="text-lg font-bold font-mono tabular-nums text-emerald-700 dark:text-emerald-400 truncate">
-                    + {formatINR(preview.profitValue)}
+                  <p
+                    className={`text-lg font-bold font-mono tabular-nums truncate ${
+                      preview.profitValue < 0
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-emerald-700 dark:text-emerald-400'
+                    }`}
+                  >
+                    {formatINR(preview.profitValue, { showSign: true })}
                   </p>
                 </div>
               </div>
               <div className="text-right shrink-0">
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Entry ROI</p>
-                <p className="text-xs font-semibold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+                <p
+                  className={`text-xs font-semibold font-mono tabular-nums ${
+                    preview.roi !== null && preview.roi < 0
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-slate-900 dark:text-slate-100'
+                  }`}
+                >
                   {preview.roi !== null ? formatPercentage(preview.roi) : '—'}
                 </p>
               </div>

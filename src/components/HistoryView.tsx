@@ -274,7 +274,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         <span className="font-mono tabular-nums text-xs font-medium text-slate-600 dark:text-slate-300">
                           {dateFormatted}
                         </span>
-                        <span className="font-mono tabular-nums text-base font-bold text-emerald-600 dark:text-emerald-400">
+                        <span
+                          className={`font-mono tabular-nums text-base font-bold ${
+                            entry.myProfit < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }`}
+                        >
                           {formatINR(entry.myProfit)}
                         </span>
                       </div>
@@ -338,7 +344,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         <td className="py-3.5 pl-6 pr-4 font-mono tabular-nums text-slate-800 dark:text-slate-200 whitespace-nowrap">
                           {dateFormatted}
                         </td>
-                        <td className="py-3.5 px-4 text-right font-mono tabular-nums font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        <td
+                          className={`py-3.5 px-4 text-right font-mono tabular-nums font-semibold whitespace-nowrap ${
+                            entry.myProfit < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }`}
+                        >
                           {formatINR(entry.myProfit)}
                         </td>
                         <td className="py-3.5 px-4 text-right font-mono tabular-nums text-slate-700 dark:text-slate-300 whitespace-nowrap">
@@ -427,14 +439,12 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                   htmlFor="edit-profit"
                   className="block text-sm font-medium text-slate-900 dark:text-slate-100"
                 >
-                  My Profit Amount (₹) <span className="text-red-600 dark:text-red-400">*</span>
+                  My Profit / Loss Amount (₹) <span className="text-red-600 dark:text-red-400">*</span>
                 </label>
                 <input
                   id="edit-profit"
                   type="number"
-                  inputMode="decimal"
                   step="any"
-                  min="0.01"
                   value={editProfit}
                   onChange={(e) => {
                     setEditProfit(e.target.value);
@@ -581,7 +591,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 dark:text-slate-400">My Profit</span>
-                  <span className="font-mono tabular-nums font-semibold text-emerald-700 dark:text-emerald-400">
+                  <span
+                    className={`font-mono tabular-nums font-semibold ${
+                      deletingEntry.myProfit < 0
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-emerald-700 dark:text-emerald-400'
+                    }`}
+                  >
                     {formatINR(deletingEntry.myProfit)}
                   </span>
                 </div>

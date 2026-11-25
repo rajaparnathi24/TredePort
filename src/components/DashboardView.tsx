@@ -178,7 +178,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className={`mt-2 sm:mt-2.5 text-lg sm:text-2xl font-bold font-mono tabular-nums tracking-tight truncate ${
                 metrics.averageProfit > 0
                   ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-slate-900 dark:text-slate-100'
+                  : metrics.averageProfit < 0
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-slate-900 dark:text-slate-100'
               }`}
             >
               {metrics.totalEntries > 0 ? formatINR(metrics.averageProfit) : '—'}
@@ -303,7 +305,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <p className="font-semibold text-slate-900 dark:text-slate-100">
                             {point.fullLabel}
                           </p>
-                          <p className="mt-1 font-mono tabular-nums text-emerald-600 dark:text-emerald-400 font-semibold">
+                          <p
+                            className={`mt-1 font-mono tabular-nums font-semibold ${
+                              point.profit < 0
+                                ? 'text-red-600 dark:text-red-400'
+                                : 'text-emerald-600 dark:text-emerald-400'
+                            }`}
+                          >
                             {formatINR(point.profit)}
                           </p>
                           <p className="mt-0.5 text-slate-500 dark:text-slate-400">
@@ -366,7 +374,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <td className="py-3 pl-4 sm:pl-6 pr-2 sm:pr-3 font-mono tabular-nums text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           {formatIndianDate(entry.tradeDate)}
                         </td>
-                        <td className="py-3 px-2 sm:px-3 text-right font-mono tabular-nums font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        <td
+                          className={`py-3 px-2 sm:px-3 text-right font-mono tabular-nums font-semibold whitespace-nowrap ${
+                            entry.myProfit < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }`}
+                        >
                           {formatINR(entry.myProfit)}
                         </td>
                         <td className="py-3 pl-2 sm:pl-3 pr-4 sm:pr-6 text-right font-mono tabular-nums text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">

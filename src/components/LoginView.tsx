@@ -35,9 +35,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-burgundy-canvas text-slate-900 dark:text-slate-100 flex flex-col">
       {/* Top Bar with Brand & Theme Toggle */}
-      <header className="w-full px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <header className="w-full px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-3 border-b border-slate-200 dark:border-burgundy-border bg-white dark:bg-burgundy-card">
         <span className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate">
           My Trading Profit Tracker
         </span>
@@ -47,11 +47,11 @@ export const LoginView: React.FC<LoginViewProps> = ({
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           aria-pressed={isDark}
           data-testid="login-theme-toggle"
-          className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-emerald-600 min-h-[40px]"
+          className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan min-h-[40px]"
         >
           {isDark ? (
             <>
-              <Sun className="w-4 h-4 text-amber-400" aria-hidden="true" />
+              <Sun className="w-4 h-4 text-accent-cyan" aria-hidden="true" />
               <span>Light</span>
             </>
           ) : (
@@ -67,7 +67,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <section
           aria-labelledby="login-heading"
-          className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-6 sm:p-8"
+          className="w-full max-w-md bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-6 sm:p-8"
         >
           <div>
             <h1
@@ -76,7 +76,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             >
               Sign in to your account
             </h1>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p className="mt-2 text-sm text-slate-600 dark:text-burgundy-muted leading-relaxed">
               Sign in with the same Google email on mobile and desktop to automatically store and
               sync your 50% trading profit share, dashboard, and history in real time—plus optional
               Google Sheets export.
@@ -86,10 +86,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
           {errorMessage && (
             <div
               role="alert"
-              className="mt-5 rounded-lg border border-red-200 dark:border-red-900/70 bg-red-50 dark:bg-red-950/50 px-4 py-3 text-sm text-red-800 dark:text-red-200 flex items-start gap-2.5"
+              className="mt-5 rounded-lg border border-red-200 dark:border-red-500/40 bg-red-50 dark:bg-red-950/60 px-4 py-3 text-sm text-red-800 dark:text-red-200 flex items-start gap-2.5"
             >
               <AlertCircle
-                className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0"
+                className="w-4 h-4 text-red-600 dark:text-[#ff4545] mt-0.5 shrink-0"
                 aria-hidden="true"
               />
               <span>{errorMessage}</span>
@@ -106,7 +106,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 />
               </div>
             ) : (
-              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
+              <div className="rounded-lg border border-slate-200 dark:border-burgundy-border bg-slate-50 dark:bg-burgundy-elevated px-4 py-3 text-xs text-slate-600 dark:text-burgundy-muted">
                 Google OAuth is not configured in this environment yet. You can continue in local
                 storage mode and review setup instructions in Settings.
               </div>
@@ -114,10 +114,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+                <div className="w-full border-t border-slate-200 dark:border-burgundy-border" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white dark:bg-slate-900 px-3 text-slate-500 dark:text-slate-400">
+                <span className="bg-white dark:bg-burgundy-card px-3 text-slate-500 dark:text-burgundy-muted">
                   or
                 </span>
               </div>
@@ -127,13 +127,13 @@ export const LoginView: React.FC<LoginViewProps> = ({
               type="button"
               onClick={onContinueLocal}
               data-testid="continue-local-button"
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors whitespace-nowrap"
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-sm font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover transition-colors whitespace-nowrap"
             >
               Continue without Google (Local Mode)
             </button>
           </div>
 
-          <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="mt-6 pt-5 border-t border-slate-200 dark:border-burgundy-border space-y-1.5 text-xs text-slate-500 dark:text-burgundy-muted">
             <p>Access tokens stay in memory only and are never saved to browser storage.</p>
             <p>Entered profits are recorded directly as your 50% share.</p>
           </div>

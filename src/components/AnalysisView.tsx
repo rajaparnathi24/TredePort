@@ -54,14 +54,15 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
   };
 
   const chartColors = {
-    grid: isDark ? '#1e293b' : '#e2e8f0',
-    axis: isDark ? '#334155' : '#e2e8f0',
-    tick: isDark ? '#94a3b8' : '#64748b',
-    cursor: isDark ? '#1e293b' : '#f1f5f9',
-    series: isDark ? '#10b981' : '#059669',
-    lossSeries: isDark ? '#f87171' : '#dc2626',
-    activeDot: isDark ? '#34d399' : '#047857',
-    activeDotStroke: isDark ? '#0f172a' : '#ffffff',
+    grid: isDark ? '#522034' : '#e2e8f0',
+    axis: isDark ? '#6e2c46' : '#e2e8f0',
+    tick: isDark ? '#d1b8c1' : '#64748b',
+    cursor: isDark ? 'rgba(6, 182, 212, 0.12)' : '#f1f5f9',
+    series: isDark ? '#00e000' : '#00c400',
+    lossSeries: isDark ? '#ff0000' : '#e60000',
+    lineStroke: isDark ? '#06b6d4' : '#00b800',
+    activeDot: isDark ? '#22d3ee' : '#00a000',
+    activeDotStroke: isDark ? '#280d17' : '#ffffff',
   };
 
   const renderTooltip = ({
@@ -75,22 +76,22 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
     const point = payload[0]?.payload;
     if (!point) return null;
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3.5 py-2.5 text-xs shadow-sm">
+      <div className="bg-white dark:bg-burgundy-input border border-slate-200 dark:border-burgundy-border-strong rounded-lg px-3.5 py-2.5 text-xs shadow-sm">
         <p className="font-semibold text-slate-900 dark:text-slate-100">{point.fullLabel}</p>
         <div className="mt-1.5 space-y-1 font-mono tabular-nums">
           <p
             className={`font-semibold ${
               point.profit < 0
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-emerald-700 dark:text-emerald-400'
+                ? 'text-red-600 dark:text-[#ff4545]'
+                : 'text-emerald-700 dark:text-[#00e000]'
             }`}
           >
             My Profit / Loss: {formatINR(point.profit)}
           </p>
-          <p className="text-slate-600 dark:text-slate-300">
+          <p className="text-slate-600 dark:text-slate-200">
             Capital Used: {point.capital > 0 ? formatINR(point.capital) : '—'}
           </p>
-          <p className="text-slate-500 dark:text-slate-400 font-sans">
+          <p className="text-slate-500 dark:text-burgundy-muted font-sans">
             {point.entries} {point.entries === 1 ? 'entry' : 'entries'}
           </p>
         </div>
@@ -105,31 +106,31 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 h-28 animate-pulse"
+              className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-xl p-5 h-28 animate-pulse"
             />
           ))}
         </div>
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 h-96 animate-pulse" />
+        <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-xl p-6 h-96 animate-pulse" />
       </div>
     );
   }
 
   const comparisonTone =
     analysis.profitChange > 0
-      ? 'text-emerald-600 dark:text-emerald-400'
+      ? 'text-emerald-600 dark:text-[#00e000]'
       : analysis.profitChange < 0
-        ? 'text-red-600 dark:text-red-400'
-        : 'text-slate-700 dark:text-slate-300';
+        ? 'text-red-600 dark:text-[#ff4545]'
+        : 'text-slate-700 dark:text-burgundy-muted';
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Filter & Navigation Toolbar */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
+      <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
         {/* Period Filter Segmented Control */}
         <div
           role="tablist"
           aria-label="Analysis period filter"
-          className="grid grid-cols-4 sm:inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl sm:rounded-lg w-full sm:w-auto sm:self-start"
+          className="grid grid-cols-4 sm:inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-burgundy-input rounded-xl sm:rounded-lg w-full sm:w-auto sm:self-start"
         >
           {PERIOD_OPTIONS.map((opt) => {
             const active = period === opt.id;
@@ -140,10 +141,10 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
                 role="tab"
                 aria-selected={active}
                 onClick={() => setPeriod(opt.id)}
-                className={`px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-lg sm:rounded-md text-xs font-semibold whitespace-nowrap text-center focus-visible:outline-2 focus-visible:outline-emerald-600 ${
+                className={`px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-lg sm:rounded-md text-xs font-semibold whitespace-nowrap text-center focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan ${
                   active
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-emerald-600 dark:bg-accent-cyan text-white dark:text-burgundy-canvas shadow-xs'
+                    : 'text-slate-600 dark:text-burgundy-muted hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {opt.label}
@@ -158,7 +159,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
             type="button"
             onClick={() => handleShiftPeriod(-1)}
             aria-label={`Previous ${period} period`}
-            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover transition-colors"
           >
             <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -173,7 +174,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
               type="button"
               onClick={() => handleShiftPeriod(1)}
               aria-label={`Next ${period} period`}
-              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover transition-colors"
             >
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </button>
@@ -181,7 +182,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
               <button
                 type="button"
                 onClick={() => setAnchorDate(todayISO)}
-                className="px-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 whitespace-nowrap"
+                className="px-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-xs font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover whitespace-nowrap"
               >
                 Current
               </button>
@@ -196,33 +197,33 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
         className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
       >
         {/* Total Profit for Selected Period */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-4 sm:p-5">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+        <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-4 sm:p-5">
+          <p className="text-xs font-medium text-slate-500 dark:text-burgundy-muted truncate">
             Profit ({analysis.periodLabel})
           </p>
           <p
             data-testid="analysis-period-profit"
             className={`mt-2 sm:mt-2.5 text-lg sm:text-2xl font-bold font-mono tabular-nums tracking-tight truncate ${
               analysis.currentProfit > 0
-                ? 'text-emerald-600 dark:text-emerald-400'
+                ? 'text-emerald-600 dark:text-[#00e000]'
                 : analysis.currentProfit < 0
-                  ? 'text-red-600 dark:text-red-400'
+                  ? 'text-red-600 dark:text-[#ff4545]'
                   : 'text-slate-900 dark:text-slate-100'
             }`}
           >
             {formatINR(analysis.currentProfit)}
           </p>
-          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">
+          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-burgundy-muted truncate">
             Prev:{' '}
-            <span className="font-mono tabular-nums text-slate-700 dark:text-slate-300">
+            <span className="font-mono tabular-nums text-slate-700 dark:text-slate-200">
               {formatINR(analysis.previousProfit)}
             </span>
           </p>
         </div>
 
         {/* Comparison with Previous Period */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-4 sm:p-5">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+        <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-4 sm:p-5">
+          <p className="text-xs font-medium text-slate-500 dark:text-burgundy-muted">
             vs. Previous
           </p>
           <p
@@ -231,7 +232,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
           >
             {formatINR(analysis.profitChange, { showSign: true })}
           </p>
-          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">
+          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-burgundy-muted truncate">
             {analysis.profitChangePercent !== null ? (
               <span className={`font-mono tabular-nums font-medium ${comparisonTone}`}>
                 {formatPercentage(analysis.profitChangePercent, { showSign: true, decimals: 1 })}
@@ -245,25 +246,25 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
         </div>
 
         {/* Number of Entries */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-4 sm:p-5">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Entries</p>
+        <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-4 sm:p-5">
+          <p className="text-xs font-medium text-slate-500 dark:text-burgundy-muted">Entries</p>
           <p
             data-testid="analysis-period-entries"
             className="mt-2 sm:mt-2.5 text-lg sm:text-2xl font-bold font-mono tabular-nums tracking-tight text-slate-900 dark:text-slate-100"
           >
             {analysis.currentEntriesCount}
           </p>
-          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-burgundy-muted">
             Previous:{' '}
-            <span className="font-mono tabular-nums text-slate-700 dark:text-slate-300">
+            <span className="font-mono tabular-nums text-slate-700 dark:text-slate-200">
               {analysis.previousEntriesCount}
             </span>
           </p>
         </div>
 
         {/* Capital Used During Period */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-4 sm:p-5">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+        <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-4 sm:p-5">
+          <p className="text-xs font-medium text-slate-500 dark:text-burgundy-muted">
             Capital Used
           </p>
           <p
@@ -272,15 +273,15 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
           >
             {analysis.currentCapitalUsed > 0 ? formatINR(analysis.currentCapitalUsed) : '—'}
           </p>
-          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">
+          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-burgundy-muted truncate">
             {analysis.currentROI !== null ? (
               <>
                 ROI:{' '}
                 <span
                   className={`font-mono tabular-nums font-medium ${
                     analysis.currentROI < 0
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-emerald-700 dark:text-emerald-400'
+                      ? 'text-red-600 dark:text-[#ff4545]'
+                      : 'text-emerald-700 dark:text-[#00e000]'
                   }`}
                 >
                   {formatPercentage(analysis.currentROI)}
@@ -294,13 +295,13 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
       </section>
 
       {/* Chart Section with Bar / Line Switcher */}
-      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-4 sm:p-6">
+      <section className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Profit Trend
             </h2>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-burgundy-muted">
               {analysis.chartRangeLabel}
             </p>
           </div>
@@ -309,7 +310,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
           <div
             role="group"
             aria-label="Chart type selector"
-            className="grid grid-cols-2 sm:inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl sm:rounded-lg w-full sm:w-auto"
+            className="grid grid-cols-2 sm:inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-burgundy-input rounded-xl sm:rounded-lg w-full sm:w-auto"
           >
             <button
               type="button"
@@ -317,8 +318,8 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
               aria-pressed={chartType === 'bar'}
               className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-md text-xs font-semibold whitespace-nowrap ${
                 chartType === 'bar'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-emerald-600 dark:bg-accent-cyan text-white dark:text-burgundy-canvas shadow-xs'
+                  : 'text-slate-600 dark:text-burgundy-muted hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
@@ -330,8 +331,8 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
               aria-pressed={chartType === 'line'}
               className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-md text-xs font-semibold whitespace-nowrap ${
                 chartType === 'line'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-emerald-600 dark:bg-accent-cyan text-white dark:text-burgundy-canvas shadow-xs'
+                  : 'text-slate-600 dark:text-burgundy-muted hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <LineChartIcon className="w-3.5 h-3.5" aria-hidden="true" />
@@ -394,12 +395,13 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
                   width={68}
                 />
                 <Tooltip content={renderTooltip} />
+                <ReferenceLine y={0} stroke={chartColors.axis} />
                 <Line
                   type="monotone"
                   dataKey="profit"
-                  stroke={chartColors.series}
+                  stroke={chartColors.lineStroke}
                   strokeWidth={2.5}
-                  dot={{ r: 3.5, fill: chartColors.series, strokeWidth: 0 }}
+                  dot={{ r: 3.5, fill: chartColors.lineStroke, strokeWidth: 0 }}
                   activeDot={{
                     r: 5.5,
                     fill: chartColors.activeDot,
@@ -414,7 +416,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
         </div>
 
         {entries.length === 0 && (
-          <p className="mt-4 text-center text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-4 text-center text-xs text-slate-500 dark:text-burgundy-muted">
             No profit records have been logged yet. Add entries to populate this chart.
           </p>
         )}

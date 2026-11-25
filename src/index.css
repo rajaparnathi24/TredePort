@@ -5,11 +5,29 @@
   --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Dark Burgundy Theme Palette */
+  --color-burgundy-canvas: #081516;
+  --color-burgundy-card: #280d17;
+  --color-burgundy-elevated: #381321;
+  --color-burgundy-hover: #4a1a2d;
+  --color-burgundy-input: #1b0910;
+  --color-burgundy-border: #522034;
+  --color-burgundy-border-strong: #6e2c46;
+  --color-burgundy-muted: #d1b8c1;
+  --color-accent-cyan: #06b6d4;
+  --color-accent-cyan-hover: #22d3ee;
 }
 
 @layer base {
   html {
     font-family: var(--font-sans);
+  }
+
+  html.dark,
+  html.dark body {
+    background-color: #081516;
+    color: #f8fafc;
   }
 
   h1,
@@ -72,19 +90,23 @@
 }
 
 .dark .gsi-material-button {
-  background-color: #1e293b;
-  border-color: #334155;
+  background-color: #381321;
+  border-color: #6e2c46;
   color: #f8fafc;
 }
 
 .dark .gsi-material-button:hover:not(:disabled) {
-  background-color: #334155;
-  border-color: #475569;
+  background-color: #4a1a2d;
+  border-color: #06b6d4;
 }
 
 .gsi-material-button:focus-visible {
   outline: 2px solid #059669;
   outline-offset: 2px;
+}
+
+.dark .gsi-material-button:focus-visible {
+  outline-color: #06b6d4;
 }
 
 .gsi-material-button:disabled {

@@ -131,17 +131,17 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-slate-50 dark:bg-burgundy-canvas text-slate-900 dark:text-slate-100 flex flex-col lg:flex-row">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 sticky top-0 h-screen">
-        <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 bg-white dark:bg-burgundy-card border-r border-slate-200 dark:border-burgundy-border sticky top-0 h-screen">
+        <div className="px-6 py-5 border-b border-slate-200 dark:border-burgundy-border">
           <button
             type="button"
             onClick={() => handleSelectNav('dashboard')}
-            className="flex items-center gap-2.5 text-left focus-visible:outline-2 focus-visible:outline-emerald-600 rounded-md"
+            className="flex items-center gap-2.5 text-left focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan rounded-md"
           >
-            <span className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/70 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            <span className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-accent-cyan/15 border border-emerald-200/70 dark:border-accent-cyan/40 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-accent-cyan" aria-hidden="true" />
             </span>
             <span className="block text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-snug">
               My Trading Profit Tracker
@@ -159,10 +159,10 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
                 type="button"
                 onClick={() => handleSelectNav(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-emerald-600 ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan ${
                   isActive
-                    ? 'bg-slate-900 text-white dark:bg-emerald-600 dark:text-white'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-slate-900 text-white dark:bg-accent-cyan dark:text-burgundy-canvas dark:font-semibold'
+                    : 'text-slate-600 dark:text-burgundy-muted hover:bg-slate-100 dark:hover:bg-burgundy-elevated hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -172,9 +172,9 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
           })}
         </nav>
 
-        <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 space-y-2.5">
+        <div className="px-5 py-4 border-t border-slate-200 dark:border-burgundy-border bg-slate-50/70 dark:bg-burgundy-input/70 space-y-2.5">
           <div>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Database</p>
+            <p className="text-xs font-medium text-slate-500 dark:text-burgundy-muted">Database</p>
             <p className="mt-0.5 text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
               {storageMode === 'sheets'
                 ? spreadsheetTitle || 'Cloud + Google Sheets'
@@ -183,7 +183,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
                   : 'Local Browser Storage'}
             </p>
             {isSignedIn && userEmail && (
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-burgundy-muted truncate">
                 {userEmail}
               </p>
             )}
@@ -192,7 +192,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
             <button
               type="button"
               onClick={() => handleSelectNav('settings')}
-              className="text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-emerald-600 rounded"
+              className="text-xs font-medium text-emerald-700 dark:text-accent-cyan hover:text-emerald-800 dark:hover:text-accent-cyan-hover underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan rounded"
             >
               {storageMode === 'sheets'
                 ? 'Manage Sync'
@@ -204,7 +204,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               <button
                 type="button"
                 onClick={onSignOut}
-                className="text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white underline underline-offset-2"
+                className="text-xs font-medium text-slate-600 dark:text-burgundy-muted hover:text-slate-900 dark:hover:text-white underline underline-offset-2"
               >
                 Sign Out
               </button>
@@ -212,7 +212,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               <button
                 type="button"
                 onClick={onOpenLogin}
-                className="text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white underline underline-offset-2"
+                className="text-xs font-medium text-slate-600 dark:text-burgundy-muted hover:text-slate-900 dark:hover:text-white underline underline-offset-2"
               >
                 Login Page
               </button>
@@ -222,18 +222,18 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
       </aside>
 
       {/* Mobile Top App Bar (48px tall; combined with 64px bottom bar = 112px < 15% of 844px) */}
-      <header className="lg:hidden sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 h-12 flex items-center justify-between gap-2">
+      <header className="lg:hidden sticky top-0 z-30 bg-white/95 dark:bg-burgundy-card/95 backdrop-blur-md border-b border-slate-200 dark:border-burgundy-border px-3 h-12 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           {activeSection === 'dashboard' ? (
-            <span className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            <span className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-accent-cyan/15 border border-transparent dark:border-accent-cyan/40 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-accent-cyan" aria-hidden="true" />
             </span>
           ) : (
             <button
               type="button"
               onClick={() => handleSelectNav('dashboard')}
               aria-label="Back to Home"
-              className="min-h-[40px] min-w-[40px] -ml-1.5 flex items-center justify-center rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-emerald-600"
+              className="min-h-[40px] min-w-[40px] -ml-1.5 flex items-center justify-center rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-burgundy-elevated focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
             >
               <ArrowLeft className="w-5 h-5" aria-hidden="true" />
             </button>
@@ -250,7 +250,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               onClick={onRefreshSheets}
               disabled={isSyncing}
               aria-label={isSyncing ? 'Syncing Google Sheet' : 'Refresh Google Sheet'}
-              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-emerald-600"
+              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-burgundy-elevated disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
             >
               <RefreshCw
                 className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`}
@@ -264,10 +264,10 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             aria-pressed={isDark}
             data-testid="mobile-theme-toggle"
-            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus-visible:outline-2 focus-visible:outline-emerald-600"
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-slate-50 dark:bg-burgundy-elevated text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-burgundy-hover transition-colors focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
           >
             {isDark ? (
-              <Sun className="w-4 h-4 text-amber-400" aria-hidden="true" />
+              <Sun className="w-4 h-4 text-accent-cyan" aria-hidden="true" />
             ) : (
               <Moon className="w-4 h-4 text-slate-600" aria-hidden="true" />
             )}
@@ -278,12 +278,12 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
       {/* Main Content Area */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Desktop Header */}
-        <header className="hidden lg:flex items-center justify-between gap-8 px-8 py-5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+        <header className="hidden lg:flex items-center justify-between gap-8 px-8 py-5 bg-white dark:bg-burgundy-card border-b border-slate-200 dark:border-burgundy-border">
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
               {currentHeader.title}
             </h1>
-            <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400 truncate">
+            <p className="mt-0.5 text-sm text-slate-500 dark:text-burgundy-muted truncate">
               {currentHeader.subtitle}
             </p>
           </div>
@@ -293,7 +293,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
                 type="button"
                 onClick={onRefreshSheets}
                 disabled={isSyncing}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors whitespace-nowrap shrink-0 disabled:opacity-60"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-sm font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover transition-colors whitespace-nowrap shrink-0 disabled:opacity-60"
               >
                 <RefreshCw
                   className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`}
@@ -308,11 +308,11 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               aria-pressed={isDark}
               data-testid="header-theme-toggle"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-emerald-600"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-sm font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
             >
               {isDark ? (
                 <>
-                  <Sun className="w-4 h-4 text-amber-400" aria-hidden="true" />
+                  <Sun className="w-4 h-4 text-accent-cyan" aria-hidden="true" />
                   <span>Light Mode</span>
                 </>
               ) : (
@@ -326,7 +326,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               <button
                 type="button"
                 onClick={() => handleSelectNav('add')}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 dark:bg-accent-cyan text-white dark:text-burgundy-canvas text-sm font-semibold hover:bg-emerald-700 dark:hover:bg-accent-cyan-hover transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
               >
                 <Plus className="w-4 h-4" aria-hidden="true" />
                 <span>Add Profit Entry</span>
@@ -344,7 +344,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
       <nav
         aria-label="Bottom navigation"
         data-testid="mobile-bottom-nav"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-burgundy-card/95 backdrop-blur-md border-t border-slate-200 dark:border-burgundy-border pb-safe"
       >
         <div className="grid grid-cols-5 items-center h-16 max-w-lg mx-auto px-1">
           {NAV_ITEMS.map((item) => {
@@ -356,16 +356,16 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
                 type="button"
                 onClick={() => handleSelectNav(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative flex flex-col items-center justify-center h-full min-h-[44px] min-w-[44px] rounded-lg focus-visible:outline-2 focus-visible:outline-emerald-600 ${
+                className={`relative flex flex-col items-center justify-center h-full min-h-[44px] min-w-[44px] rounded-lg focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan ${
                   isActive
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                    ? 'text-emerald-600 dark:text-accent-cyan'
+                    : 'text-slate-500 dark:text-burgundy-muted hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
                 <span
                   className={`flex items-center justify-center w-8 h-7 rounded-lg ${
                     isActive
-                      ? 'bg-emerald-50 dark:bg-emerald-950/70'
+                      ? 'bg-emerald-50 dark:bg-accent-cyan/15'
                       : 'bg-transparent'
                   }`}
                 >

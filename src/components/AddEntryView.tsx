@@ -95,12 +95,12 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
 
   return (
     <div className="max-w-xl">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-5 sm:p-8">
-        <div className="pb-5 border-b border-slate-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-5 sm:p-8">
+        <div className="pb-5 border-b border-slate-200 dark:border-burgundy-border">
           <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             New Profit Entry
           </h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          <p className="mt-1 text-sm text-slate-600 dark:text-burgundy-muted">
             Enter only your 50% profit share. The value you enter is saved directly and is never
             divided by 2.
           </p>
@@ -109,11 +109,11 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
         {successMessage && (
           <div
             role="status"
-            className="mt-5 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 px-4 py-3.5 text-sm text-emerald-900 dark:text-emerald-200"
+            className="mt-5 rounded-lg border border-emerald-200 dark:border-accent-cyan/40 bg-emerald-50 dark:bg-burgundy-elevated px-4 py-3.5 text-sm text-emerald-900 dark:text-slate-100"
           >
             <div className="flex items-start gap-2.5">
               <CheckCircle2
-                className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0"
+                className="w-4 h-4 text-emerald-600 dark:text-accent-cyan mt-0.5 shrink-0"
                 aria-hidden="true"
               />
               <div className="flex-1">
@@ -122,14 +122,14 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                   <button
                     type="button"
                     onClick={() => onNavigate('dashboard')}
-                    className="text-emerald-800 dark:text-emerald-300 underline underline-offset-2 hover:text-emerald-950 dark:hover:text-emerald-100"
+                    className="text-emerald-800 dark:text-accent-cyan underline underline-offset-2 hover:text-emerald-950 dark:hover:text-accent-cyan-hover"
                   >
                     View Dashboard
                   </button>
                   <button
                     type="button"
                     onClick={() => onNavigate('history')}
-                    className="text-emerald-800 dark:text-emerald-300 underline underline-offset-2 hover:text-emerald-950 dark:hover:text-emerald-100"
+                    className="text-emerald-800 dark:text-accent-cyan underline underline-offset-2 hover:text-emerald-950 dark:hover:text-accent-cyan-hover"
                   >
                     View Trade History
                   </button>
@@ -142,10 +142,10 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
         {submitError && (
           <div
             role="alert"
-            className="mt-5 rounded-lg border border-red-200 dark:border-red-900/70 bg-red-50 dark:bg-red-950/50 px-4 py-3.5 text-sm text-red-800 dark:text-red-200 flex items-start gap-2.5"
+            className="mt-5 rounded-lg border border-red-200 dark:border-red-500/40 bg-red-50 dark:bg-red-950/60 px-4 py-3.5 text-sm text-red-800 dark:text-red-200 flex items-start gap-2.5"
           >
             <AlertCircle
-              className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0"
+              className="w-4 h-4 text-red-600 dark:text-[#ff4545] mt-0.5 shrink-0"
               aria-hidden="true"
             />
             <span>{submitError}</span>
@@ -160,14 +160,14 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 htmlFor="entry-profit"
                 className="block text-sm font-medium text-slate-900 dark:text-slate-100"
               >
-                My Profit / Loss Amount (₹) <span className="text-red-600 dark:text-red-400">*</span>
+                My Profit / Loss Amount (₹) <span className="text-red-600 dark:text-[#ff4545]">*</span>
               </label>
               {preview.profitValue !== null && (
                 <span
                   className={`text-xs font-mono tabular-nums font-medium ${
                     preview.profitValue < 0
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-emerald-700 dark:text-emerald-400'
+                      ? 'text-red-600 dark:text-[#ff4545]'
+                      : 'text-emerald-700 dark:text-[#00e000]'
                   }`}
                 >
                   {formatINR(preview.profitValue, { showSign: true })}
@@ -176,7 +176,7 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
             </div>
             <div className="mt-1.5 relative">
               <span
-                className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 dark:text-slate-400 text-sm font-medium"
+                className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 dark:text-burgundy-muted text-sm font-medium"
                 aria-hidden="true"
               >
                 ₹
@@ -199,10 +199,10 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 aria-describedby={
                   fieldErrors.myProfit ? 'entry-profit-error' : 'entry-profit-help'
                 }
-                className={`block w-full rounded-xl sm:rounded-lg border pl-8 pr-3.5 py-3 sm:py-2.5 text-base sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 ${
+                className={`block w-full rounded-xl sm:rounded-lg border pl-8 pr-3.5 py-3 sm:py-2.5 text-base sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-burgundy-muted/60 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan ${
                   fieldErrors.myProfit
                     ? 'border-red-400 dark:border-red-500 bg-red-50/30 dark:bg-red-950/30'
-                    : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950'
+                    : 'border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input'
                 }`}
               />
             </div>
@@ -210,12 +210,12 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
               <p
                 id="entry-profit-error"
                 role="alert"
-                className="mt-1.5 text-xs text-red-600 dark:text-red-400"
+                className="mt-1.5 text-xs text-red-600 dark:text-[#ff4545]"
               >
                 {fieldErrors.myProfit}
               </p>
             ) : (
-              <p id="entry-profit-help" className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <p id="entry-profit-help" className="mt-1.5 text-xs text-slate-500 dark:text-burgundy-muted">
                 Enter a positive value for profit or a negative value (e.g. -2500) for a loss.
               </p>
             )}
@@ -229,19 +229,19 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 className="block text-sm font-medium text-slate-900 dark:text-slate-100"
               >
                 Capital Used (₹){' '}
-                <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-normal text-slate-500 dark:text-burgundy-muted">
                   Optional
                 </span>
               </label>
               {preview.capitalValue !== null && (
-                <span className="text-xs font-mono tabular-nums text-slate-600 dark:text-slate-300">
+                <span className="text-xs font-mono tabular-nums text-slate-600 dark:text-slate-200">
                   {formatINR(preview.capitalValue)}
                 </span>
               )}
             </div>
             <div className="mt-1.5 relative">
               <span
-                className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 dark:text-slate-400 text-sm font-medium"
+                className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 dark:text-burgundy-muted text-sm font-medium"
                 aria-hidden="true"
               >
                 ₹
@@ -263,19 +263,19 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 placeholder="Leave blank if not tracked"
                 aria-invalid={Boolean(fieldErrors.capitalUsed)}
                 aria-describedby="entry-capital-help"
-                className={`block w-full rounded-xl sm:rounded-lg border pl-8 pr-3.5 py-3 sm:py-2.5 text-base sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 ${
+                className={`block w-full rounded-xl sm:rounded-lg border pl-8 pr-3.5 py-3 sm:py-2.5 text-base sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-burgundy-muted/60 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan ${
                   fieldErrors.capitalUsed
                     ? 'border-red-400 dark:border-red-500 bg-red-50/30 dark:bg-red-950/30'
-                    : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950'
+                    : 'border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input'
                 }`}
               />
             </div>
             {fieldErrors.capitalUsed ? (
-              <p role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+              <p role="alert" className="mt-1.5 text-xs text-red-600 dark:text-[#ff4545]">
                 {fieldErrors.capitalUsed}
               </p>
             ) : (
-              <p id="entry-capital-help" className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <p id="entry-capital-help" className="mt-1.5 text-xs text-slate-500 dark:text-burgundy-muted">
                 Optional. Leave empty if unknown—missing capital is never treated as zero in ROI
                 calculations.
               </p>
@@ -289,10 +289,10 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 htmlFor="entry-date"
                 className="block text-sm font-medium text-slate-900 dark:text-slate-100"
               >
-                Trade Date <span className="text-red-600 dark:text-red-400">*</span>
+                Trade Date <span className="text-red-600 dark:text-[#ff4545]">*</span>
               </label>
               {tradeDate && (
-                <span className="text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-mono tabular-nums text-slate-500 dark:text-burgundy-muted">
                   {formatIndianDate(tradeDate)}
                 </span>
               )}
@@ -310,14 +310,14 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 }
               }}
               aria-invalid={Boolean(fieldErrors.tradeDate)}
-              className={`mt-1.5 block w-full rounded-xl sm:rounded-lg border px-3.5 py-3 sm:py-2.5 text-base sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 ${
+              className={`mt-1.5 block w-full rounded-xl sm:rounded-lg border px-3.5 py-3 sm:py-2.5 text-base sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan ${
                 fieldErrors.tradeDate
                   ? 'border-red-400 dark:border-red-500 bg-red-50/30 dark:bg-red-950/30'
-                  : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950'
+                  : 'border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input'
               }`}
             />
             {fieldErrors.tradeDate && (
-              <p role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+              <p role="alert" className="mt-1.5 text-xs text-red-600 dark:text-[#ff4545]">
                 {fieldErrors.tradeDate}
               </p>
             )}
@@ -328,34 +328,34 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
             <div
               className={`rounded-xl border px-4 py-3.5 flex items-center justify-between gap-3 ${
                 preview.profitValue < 0
-                  ? 'border-red-200/80 dark:border-red-900/60 bg-red-50/60 dark:bg-red-950/35'
-                  : 'border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50/60 dark:bg-emerald-950/35'
+                  ? 'border-red-200/80 dark:border-[#ff0000]/45 bg-red-50/60 dark:bg-burgundy-elevated'
+                  : 'border-emerald-200/80 dark:border-[#00e000]/40 bg-emerald-50/60 dark:bg-burgundy-elevated'
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span
                   className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                     preview.profitValue < 0
-                      ? 'bg-red-600/10 dark:bg-red-500/15'
-                      : 'bg-emerald-600/10 dark:bg-emerald-500/15'
+                      ? 'bg-red-600/10 dark:bg-[#ff0000]/15'
+                      : 'bg-emerald-600/10 dark:bg-[#00e000]/15'
                   }`}
                   aria-hidden="true"
                 >
                   {preview.profitValue < 0 ? (
-                    <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    <TrendingDown className="w-4 h-4 text-red-600 dark:text-[#ff4545]" />
                   ) : (
-                    <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-[#00e000]" />
                   )}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                  <p className="text-xs font-medium text-slate-600 dark:text-burgundy-muted">
                     {preview.profitValue < 0 ? 'Loss Summary' : 'Profit Summary'}
                   </p>
                   <p
                     className={`text-lg font-bold font-mono tabular-nums truncate ${
                       preview.profitValue < 0
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-emerald-700 dark:text-emerald-400'
+                        ? 'text-red-600 dark:text-[#ff4545]'
+                        : 'text-emerald-700 dark:text-[#00e000]'
                     }`}
                   >
                     {formatINR(preview.profitValue, { showSign: true })}
@@ -363,11 +363,11 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Entry ROI</p>
+                <p className="text-[11px] text-slate-500 dark:text-burgundy-muted">Entry ROI</p>
                 <p
                   className={`text-xs font-semibold font-mono tabular-nums ${
                     preview.roi !== null && preview.roi < 0
-                      ? 'text-red-600 dark:text-red-400'
+                      ? 'text-red-600 dark:text-[#ff4545]'
                       : 'text-slate-900 dark:text-slate-100'
                   }`}
                 >
@@ -382,7 +382,7 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 min-h-[48px] sm:min-h-0 rounded-xl sm:rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors whitespace-nowrap disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 min-h-[48px] sm:min-h-0 rounded-xl sm:rounded-lg bg-emerald-600 dark:bg-accent-cyan text-white dark:text-burgundy-canvas text-sm font-semibold hover:bg-emerald-700 dark:hover:bg-accent-cyan-hover transition-colors whitespace-nowrap disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
             >
               <Save className="w-4 h-4" aria-hidden="true" />
               <span>{isSubmitting ? 'Saving Entry...' : 'Save Entry'}</span>
@@ -398,7 +398,7 @@ export const AddEntryView: React.FC<AddEntryViewProps> = ({
                 setSuccessMessage(null);
               }}
               disabled={isSubmitting}
-              className="px-4 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 rounded-xl sm:rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors whitespace-nowrap"
+              className="px-4 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 rounded-xl sm:rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-slate-700 dark:text-slate-100 text-sm font-medium hover:bg-slate-50 dark:hover:bg-burgundy-hover transition-colors whitespace-nowrap"
             >
               Reset
             </button>

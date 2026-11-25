@@ -129,10 +129,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 space-y-4 animate-pulse">
-        <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg" />
+      <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-xl p-6 space-y-4 animate-pulse">
+        <div className="h-10 bg-slate-100 dark:bg-burgundy-elevated rounded-lg" />
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-11 bg-slate-100 dark:bg-slate-800/70 rounded" />
+          <div key={i} className="h-11 bg-slate-100 dark:bg-burgundy-elevated/70 rounded" />
         ))}
       </div>
     );
@@ -143,19 +143,19 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       {/* Search & Date Filters */}
       <section
         aria-label="Filter trade history"
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-3.5 sm:p-4"
+        className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl p-3.5 sm:p-4"
       >
         <div className="grid grid-cols-2 md:grid-cols-12 gap-2.5 sm:gap-3 items-end">
           <div className="col-span-2 md:col-span-5">
             <label
               htmlFor="history-search"
-              className="block text-xs font-medium text-slate-600 dark:text-slate-300"
+              className="block text-xs font-medium text-slate-600 dark:text-burgundy-muted"
             >
               Search
             </label>
             <div className="mt-1 relative">
               <Search
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-burgundy-muted/70"
                 aria-hidden="true"
               />
               <input
@@ -164,7 +164,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 value={filters.search}
                 onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
                 placeholder="Search by date, profit, capital..."
-                className="block w-full rounded-xl sm:rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 pl-9 pr-3 py-2.5 sm:py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
+                className="block w-full rounded-xl sm:rounded-lg border border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input pl-9 pr-3 py-2.5 sm:py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-burgundy-muted/60 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan"
               />
             </div>
           </div>
@@ -172,7 +172,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           <div className="col-span-1 md:col-span-3">
             <label
               htmlFor="history-from-date"
-              className="block text-xs font-medium text-slate-600 dark:text-slate-300"
+              className="block text-xs font-medium text-slate-600 dark:text-burgundy-muted"
             >
               From Date
             </label>
@@ -181,14 +181,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               type="date"
               value={filters.fromDate}
               onChange={(e) => setFilters((prev) => ({ ...prev, fromDate: e.target.value }))}
-              className="mt-1 block w-full rounded-xl sm:rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 sm:px-3 py-2.5 sm:py-2 text-xs sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
+              className="mt-1 block w-full rounded-xl sm:rounded-lg border border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input px-2.5 sm:px-3 py-2.5 sm:py-2 text-xs sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan"
             />
           </div>
 
           <div className="col-span-1 md:col-span-3">
             <label
               htmlFor="history-to-date"
-              className="block text-xs font-medium text-slate-600 dark:text-slate-300"
+              className="block text-xs font-medium text-slate-600 dark:text-burgundy-muted"
             >
               To Date
             </label>
@@ -197,7 +197,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               type="date"
               value={filters.toDate}
               onChange={(e) => setFilters((prev) => ({ ...prev, toDate: e.target.value }))}
-              className="mt-1 block w-full rounded-xl sm:rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 sm:px-3 py-2.5 sm:py-2 text-xs sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
+              className="mt-1 block w-full rounded-xl sm:rounded-lg border border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input px-2.5 sm:px-3 py-2.5 sm:py-2 text-xs sm:text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan"
             />
           </div>
 
@@ -206,7 +206,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               type="button"
               onClick={() => setFilters({ search: '', fromDate: '', toDate: '' })}
               disabled={!hasActiveFilters}
-              className="w-full md:w-auto px-3 py-2.5 sm:py-2 rounded-xl sm:rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 whitespace-nowrap"
+              className="w-full md:w-auto px-3 py-2.5 sm:py-2 rounded-xl sm:rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-xs font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover disabled:opacity-40 whitespace-nowrap"
             >
               Clear
             </button>
@@ -215,9 +215,9 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       </section>
 
       {/* Trade History List / Table */}
-      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl overflow-hidden">
-        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+      <section className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border rounded-2xl sm:rounded-xl overflow-hidden">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 dark:border-burgundy-border flex items-center justify-between gap-4">
+          <p className="text-xs text-slate-600 dark:text-burgundy-muted">
             Showing{' '}
             <span className="font-mono tabular-nums font-semibold text-slate-900 dark:text-slate-100">
               {filteredEntries.length}
@@ -235,13 +235,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               No trade entries yet
             </h2>
-            <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-300">
+            <p className="mt-1.5 text-sm text-slate-600 dark:text-burgundy-muted">
               Your logged profit entries will appear here in newest-first order.
             </p>
             <button
               type="button"
               onClick={() => onNavigate('add')}
-              className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl sm:rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors min-h-[44px]"
+              className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl sm:rounded-lg bg-emerald-600 dark:bg-accent-cyan text-white dark:text-burgundy-canvas text-sm font-semibold hover:bg-emerald-700 dark:hover:bg-accent-cyan-hover transition-colors min-h-[44px]"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
               <span>Add First Entry</span>
@@ -252,13 +252,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
               No entries match your filters
             </p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-burgundy-muted">
               Try adjusting your search query or date range.
             </p>
             <button
               type="button"
               onClick={() => setFilters({ search: '', fromDate: '', toDate: '' })}
-              className="mt-4 px-4 py-2.5 rounded-xl sm:rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="mt-4 px-4 py-2.5 rounded-xl sm:rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-xs font-semibold text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover"
             >
               Clear Filters
             </button>
@@ -266,7 +266,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         ) : (
           <>
             {/* Mobile Compact Entry Rows (zero horizontal overflow) */}
-            <div className="sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="sm:hidden divide-y divide-slate-100 dark:divide-burgundy-border/70">
               {filteredEntries.map((entry) => {
                 const roi = calculateTradeROI(entry.myProfit, entry.capitalUsed, totalCapitalUsed);
                 const dateFormatted = formatIndianDate(entry.tradeDate);
@@ -277,27 +277,27 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="font-mono tabular-nums text-xs font-medium text-slate-600 dark:text-slate-300">
+                        <span className="font-mono tabular-nums text-xs font-medium text-slate-600 dark:text-slate-200">
                           {dateFormatted}
                         </span>
                         <span
                           className={`font-mono tabular-nums text-base font-bold ${
                             entry.myProfit < 0
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-emerald-600 dark:text-emerald-400'
+                              ? 'text-red-600 dark:text-[#ff4545]'
+                              : 'text-emerald-600 dark:text-[#00e000]'
                           }`}
                         >
                           {formatINR(entry.myProfit)}
                         </span>
                       </div>
-                      <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-burgundy-muted">
                         <span className="font-mono tabular-nums truncate">
                           Capital:{' '}
                           {entry.capitalUsed !== null ? formatINR(entry.capitalUsed) : '—'}
                         </span>
                         <span
                           className={`font-mono tabular-nums shrink-0 ${
-                            roi !== null && roi < 0 ? 'text-red-600 dark:text-red-400' : ''
+                            roi !== null && roi < 0 ? 'text-red-600 dark:text-[#ff4545]' : ''
                           }`}
                         >
                           ROI: {roi !== null ? formatPercentage(roi) : '—'}
@@ -309,7 +309,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         type="button"
                         onClick={() => openEditModal(entry)}
                         aria-label={`Edit ${formatINR(entry.myProfit)} entry on ${dateFormatted}`}
-                        className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-slate-700 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-burgundy-hover"
                       >
                         <Pencil className="w-4 h-4" aria-hidden="true" />
                       </button>
@@ -320,7 +320,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                           setDeleteError(null);
                         }}
                         aria-label={`Delete ${formatINR(entry.myProfit)} entry on ${dateFormatted}`}
-                        className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-red-200 dark:border-red-900/70 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50"
+                        className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-red-200 dark:border-red-500/40 bg-white dark:bg-burgundy-elevated text-red-600 dark:text-[#ff4545] hover:bg-red-50 dark:hover:bg-red-950/60"
                       >
                         <Trash2 className="w-4 h-4" aria-hidden="true" />
                       </button>
@@ -334,7 +334,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  <tr className="border-b border-slate-200 dark:border-burgundy-border bg-slate-50/80 dark:bg-burgundy-elevated/80 text-xs font-semibold text-slate-600 dark:text-burgundy-muted">
                     <th className="py-3 pl-6 pr-4">Date</th>
                     <th className="py-3 px-4 text-right">My Profit</th>
                     <th className="py-3 px-4 text-right">Capital Used</th>
@@ -342,7 +342,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                     <th className="py-3 pl-4 pr-6 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+                <tbody className="divide-y divide-slate-100 dark:divide-burgundy-border/70 text-sm">
                   {filteredEntries.map((entry) => {
                     const roi = calculateTradeROI(
                       entry.myProfit,
@@ -353,28 +353,28 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                     return (
                       <tr
                         key={entry.id}
-                        className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors"
+                        className="hover:bg-slate-50/80 dark:hover:bg-burgundy-elevated/70 transition-colors"
                       >
-                        <td className="py-3.5 pl-6 pr-4 font-mono tabular-nums text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                        <td className="py-3.5 pl-6 pr-4 font-mono tabular-nums text-slate-800 dark:text-slate-100 whitespace-nowrap">
                           {dateFormatted}
                         </td>
                         <td
                           className={`py-3.5 px-4 text-right font-mono tabular-nums font-semibold whitespace-nowrap ${
                             entry.myProfit < 0
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-emerald-600 dark:text-emerald-400'
+                              ? 'text-red-600 dark:text-[#ff4545]'
+                              : 'text-emerald-600 dark:text-[#00e000]'
                           }`}
                         >
                           {formatINR(entry.myProfit)}
                         </td>
-                        <td className="py-3.5 px-4 text-right font-mono tabular-nums text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                        <td className="py-3.5 px-4 text-right font-mono tabular-nums text-slate-700 dark:text-slate-200 whitespace-nowrap">
                           {entry.capitalUsed !== null ? formatINR(entry.capitalUsed) : '—'}
                         </td>
                         <td
                           className={`py-3.5 px-4 text-right font-mono tabular-nums whitespace-nowrap ${
                             roi !== null && roi < 0
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-slate-700 dark:text-slate-300'
+                              ? 'text-red-600 dark:text-[#ff4545]'
+                              : 'text-slate-700 dark:text-slate-200'
                           }`}
                         >
                           {roi !== null ? formatPercentage(roi) : '—'}
@@ -385,7 +385,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                               type="button"
                               onClick={() => openEditModal(entry)}
                               aria-label={`Edit ${formatINR(entry.myProfit)} entry on ${dateFormatted}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-xs font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-burgundy-hover transition-colors"
                             >
                               <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                               <span>Edit</span>
@@ -397,7 +397,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                                 setDeleteError(null);
                               }}
                               aria-label={`Delete ${formatINR(entry.myProfit)} entry on ${dateFormatted}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-red-200 dark:border-red-900/70 bg-white dark:bg-slate-800 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-red-200 dark:border-red-500/40 bg-white dark:bg-burgundy-elevated text-xs font-medium text-red-700 dark:text-[#ff4545] hover:bg-red-50 dark:hover:bg-red-950/60 transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                               <span>Delete</span>
@@ -417,13 +417,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       {/* Edit Entry Modal */}
       {editingEntry && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
           role="dialog"
           aria-modal="true"
           aria-labelledby="edit-entry-title"
         >
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-lg">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border-strong rounded-xl w-full max-w-md overflow-hidden shadow-lg">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-burgundy-border flex items-center justify-between">
               <h2
                 id="edit-entry-title"
                 className="text-base font-semibold text-slate-900 dark:text-slate-100"
@@ -434,7 +434,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 type="button"
                 onClick={closeEditModal}
                 aria-label="Close edit dialog"
-                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-burgundy-muted hover:bg-slate-100 dark:hover:bg-burgundy-elevated"
               >
                 <X className="w-4 h-4" aria-hidden="true" />
               </button>
@@ -444,10 +444,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               {editSubmitError && (
                 <div
                   role="alert"
-                  className="rounded-lg border border-red-200 dark:border-red-900/70 bg-red-50 dark:bg-red-950/50 px-3.5 py-2.5 text-xs text-red-800 dark:text-red-200 flex items-start gap-2"
+                  className="rounded-lg border border-red-200 dark:border-red-500/40 bg-red-50 dark:bg-red-950/60 px-3.5 py-2.5 text-xs text-red-800 dark:text-red-200 flex items-start gap-2"
                 >
                   <AlertCircle
-                    className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5"
+                    className="w-4 h-4 text-red-600 dark:text-[#ff4545] shrink-0 mt-0.5"
                     aria-hidden="true"
                   />
                   <span>{editSubmitError}</span>
@@ -459,7 +459,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                   htmlFor="edit-profit"
                   className="block text-sm font-medium text-slate-900 dark:text-slate-100"
                 >
-                  My Profit / Loss Amount (₹) <span className="text-red-600 dark:text-red-400">*</span>
+                  My Profit / Loss Amount (₹) <span className="text-red-600 dark:text-[#ff4545]">*</span>
                 </label>
                 <input
                   id="edit-profit"
@@ -470,10 +470,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                     setEditProfit(e.target.value);
                     setEditErrors((prev) => ({ ...prev, myProfit: undefined }));
                   }}
-                  className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
+                  className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input px-3.5 py-2 text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan"
                 />
                 {editErrors.myProfit && (
-                  <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
+                  <p role="alert" className="mt-1 text-xs text-red-600 dark:text-[#ff4545]">
                     {editErrors.myProfit}
                   </p>
                 )}
@@ -485,7 +485,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                   className="block text-sm font-medium text-slate-900 dark:text-slate-100"
                 >
                   Capital Used (₹){' '}
-                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-normal text-slate-500 dark:text-burgundy-muted">
                     Optional
                   </span>
                 </label>
@@ -501,10 +501,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                     setEditErrors((prev) => ({ ...prev, capitalUsed: undefined }));
                   }}
                   placeholder="Leave blank if not tracked"
-                  className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
+                  className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input px-3.5 py-2 text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-burgundy-muted/60 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan"
                 />
                 {editErrors.capitalUsed && (
-                  <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
+                  <p role="alert" className="mt-1 text-xs text-red-600 dark:text-[#ff4545]">
                     {editErrors.capitalUsed}
                   </p>
                 )}
@@ -515,7 +515,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                   htmlFor="edit-date"
                   className="block text-sm font-medium text-slate-900 dark:text-slate-100"
                 >
-                  Trade Date <span className="text-red-600 dark:text-red-400">*</span>
+                  Trade Date <span className="text-red-600 dark:text-[#ff4545]">*</span>
                 </label>
                 <input
                   id="edit-date"
@@ -525,18 +525,18 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                     setEditDate(e.target.value);
                     setEditErrors((prev) => ({ ...prev, tradeDate: undefined }));
                   }}
-                  className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
+                  className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-input px-3.5 py-2 text-sm font-mono tabular-nums text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 dark:focus:ring-accent-cyan/25 focus:border-emerald-600 dark:focus:border-accent-cyan"
                 />
                 {editErrors.tradeDate && (
-                  <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
+                  <p role="alert" className="mt-1 text-xs text-red-600 dark:text-[#ff4545]">
                     {editErrors.tradeDate}
                   </p>
                 )}
               </div>
 
               {(storageMode === 'sheets' || storageMode === 'cloud') && (
-                <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2">
-                  Confirming will update entry <span className="font-mono">{editingEntry.id}</span>{' '}
+                <p className="text-xs text-slate-600 dark:text-burgundy-muted bg-slate-50 dark:bg-burgundy-elevated border border-slate-200 dark:border-burgundy-border rounded-lg px-3 py-2">
+                  Confirming will update entry <span className="font-mono text-slate-900 dark:text-slate-100">{editingEntry.id}</span>{' '}
                   {storageMode === 'sheets'
                     ? 'across your synced devices and connected Google Sheet.'
                     : 'across all devices signed into your Google account.'}
@@ -548,14 +548,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                   type="button"
                   onClick={closeEditModal}
                   disabled={isUpdating}
-                  className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  className="px-4 py-2 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-sm font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isUpdating}
-                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60"
+                  className="px-4 py-2 rounded-lg bg-emerald-600 dark:bg-accent-cyan text-white dark:text-burgundy-canvas text-sm font-semibold hover:bg-emerald-700 dark:hover:bg-accent-cyan-hover disabled:opacity-60"
                 >
                   {isUpdating ? 'Saving...' : 'Confirm & Save Changes'}
                 </button>
@@ -568,13 +568,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       {/* Delete Confirmation Modal */}
       {deletingEntry && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-entry-title"
         >
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-lg">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="bg-white dark:bg-burgundy-card border border-slate-200 dark:border-burgundy-border-strong rounded-xl w-full max-w-md overflow-hidden shadow-lg">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-burgundy-border flex items-center justify-between">
               <h2
                 id="delete-entry-title"
                 className="text-base font-semibold text-slate-900 dark:text-slate-100"
@@ -585,14 +585,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 type="button"
                 onClick={() => !isDeleting && setDeletingEntry(null)}
                 aria-label="Close delete confirmation"
-                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-burgundy-muted hover:bg-slate-100 dark:hover:bg-burgundy-elevated"
               >
                 <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-slate-700 dark:text-slate-300">
+              <p className="text-sm text-slate-700 dark:text-burgundy-muted">
                 Are you sure you want to permanently delete this entry
                 {storageMode === 'sheets'
                   ? ' from your synced Cloud Account and Google Sheet'
@@ -602,27 +602,27 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 ? This action cannot be undone.
               </p>
 
-              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 px-4 py-3 text-sm space-y-1.5">
+              <div className="rounded-lg border border-slate-200 dark:border-burgundy-border bg-slate-50 dark:bg-burgundy-elevated px-4 py-3 text-sm space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">Trade Date</span>
+                  <span className="text-slate-500 dark:text-burgundy-muted">Trade Date</span>
                   <span className="font-mono tabular-nums font-medium text-slate-900 dark:text-slate-100">
                     {formatIndianDate(deletingEntry.tradeDate)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">My Profit</span>
+                  <span className="text-slate-500 dark:text-burgundy-muted">My Profit</span>
                   <span
                     className={`font-mono tabular-nums font-semibold ${
                       deletingEntry.myProfit < 0
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-emerald-700 dark:text-emerald-400'
+                        ? 'text-red-600 dark:text-[#ff4545]'
+                        : 'text-emerald-700 dark:text-[#00e000]'
                     }`}
                   >
                     {formatINR(deletingEntry.myProfit)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">Capital Used</span>
+                  <span className="text-slate-500 dark:text-burgundy-muted">Capital Used</span>
                   <span className="font-mono tabular-nums text-slate-900 dark:text-slate-100">
                     {deletingEntry.capitalUsed !== null
                       ? formatINR(deletingEntry.capitalUsed)
@@ -634,7 +634,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               {deleteError && (
                 <div
                   role="alert"
-                  className="rounded-lg border border-red-200 dark:border-red-900/70 bg-red-50 dark:bg-red-950/50 px-3.5 py-2.5 text-xs text-red-800 dark:text-red-200"
+                  className="rounded-lg border border-red-200 dark:border-red-500/40 bg-red-50 dark:bg-red-950/60 px-3.5 py-2.5 text-xs text-red-800 dark:text-red-200"
                 >
                   {deleteError}
                 </div>
@@ -645,7 +645,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                   type="button"
                   onClick={() => setDeletingEntry(null)}
                   disabled={isDeleting}
-                  className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  className="px-4 py-2 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-sm font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-burgundy-hover"
                 >
                   Cancel
                 </button>

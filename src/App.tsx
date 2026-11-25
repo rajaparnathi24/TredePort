@@ -17,7 +17,6 @@ import {
 } from './services/googleAuth';
 import {
   appendTradeRecord,
-  createTradeSpreadsheet,
   deleteTradeRecordFromSheet,
   fetchTradeRecords,
   GoogleSheetsError,
@@ -361,50 +360,6 @@ export const App: React.FC = () => {
       lastSyncedAt: null,
     }));
     setHasEnteredApp(false);
-  };
-
-  const handleCreateSpreadsheet = async () => {
-    const token = getAccessToken();
-    if (!token) {
-      throw new Error(
-        'Please click "Reconnect Google Sheets" first so this session has permission to create a spreadsheet.'
-      );
-    }
-    setIsLoadingSheet(true);
-    setGlobalError(null);
-    try {
-      const created = await createTradeSpreadsheet(token, 'My Trading Profit Tracker');
-      const meta = {
-        spreadsheetId: created.spreadsheetId,
-        spreadsheetTitle: created.title,
-        spreadsheetUrl: created.spreadsheetUrl,
-      };
-      saveSpreadsheetMeta(meta);
-      if (googleState.uid) {
-        await saveUserSpreadsheetMeta(googleState.uid, meta);
-        // Copy any existing cloud entries into the newly created Google Sheet
-        for (const existingRecord of cloudEntriesRef.current) {
-          await appendTradeRecord(token, created.spreadsheetId, existingRecord);
-        }
-      }
-      setSheetEntries(cloudEntriesRef.current);
-      setGoogleState((prev) => ({
-        ...prev,
-        hasSheetsToken: true,
-        spreadsheetId: created.spreadsheetId,
-        spreadsheetTitle: created.title,
-        spreadsheetUrl: created.spreadsheetUrl,
-        lastSyncedAt: new Date().toISOString(),
-      }));
-    } catch (err) {
-      handleSheetsError(err);
-    } finally {
-      setIsLoadingSheet(false);
-    }
-  };
-
-  const handleConnectSpreadsheet = async (spreadsheetId: string) => {
-    await syncFromGoogleSheet(spreadsheetId);
   };
 
   const handleSyncNow = async () => {
@@ -753,9 +708,6 @@ export const App: React.FC = () => {
           onOpenLogin={() => setHasEnteredApp(false)}
           onGoogleSignIn={handleGoogleSignIn}
           onGoogleSignOut={handleGoogleSignOut}
-          onCreateSpreadsheet={handleCreateSpreadsheet}
-          onConnectSpreadsheet={handleConnectSpreadsheet}
-          onSyncNow={handleSyncNow}
           onSyncPermanentSheet={handleSyncPermanentSheet}
           onMigrateLocalToSheet={handleMigrateLocalToCloud}
         />

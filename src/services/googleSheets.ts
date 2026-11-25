@@ -480,3 +480,161 @@ export async function deleteTradeRecordFromSheet(
   });
   await syncTotalProfitLossCell(accessToken, spreadsheetId);
 }
+
+export interface GidSyncResult {
+  status: 'synced' | 'already_added' | 'no_entries';
+  addedCount: number;
+  skippedCount: number;
+  sheetTitle: string | null;
+  spreadsheetId: string;
+  sheetGid: number;
+  spreadsheetUrl: string;
+  message: string;
+}
+
+/**
+ * Syncs only newly added trade entries to a specific Spreadsheet ID + Sheet GID tab
+ * using the signed-in user's Google Sheets OAuth access token.
+ * Deduplicates by ID in Column A and returns "already_added" if every entry is already present.
+ */
+export async function syncNewEntriesToSheetByGid(
+  accessToken: string,
+  spreadsheetId: string,
+  sheetGid: number,
+  entries: TradeRecord[]
+): Promise<GidSyncResult> {
+  const spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit#gid=${sheetGid}`;
+
+  if (entries.length === 0) {
+    return {
+      status: 'no_entries',
+      addedCount: 0,
+      skippedCount: 0,
+      sheetTitle: null,
+      spreadsheetId,
+      sheetGid,
+      spreadsheetUrl,
+      message: 'No trade entries to sync yet. Add a trade entry first.',
+    };
+  }
+
+  const metadata = await sheetsFetch<SpreadsheetMetadataResponse>(
+    `${SHEETS_API_BASE}/${encodeURIComponent(spreadsheetId)}?fields=spreadsheetId,spreadsheetUrl,sheets.properties(sheetId,title)`,
+    accessToken
+  );
+
+  const matchingTab = (metadata.sheets || []).find((s) => s.properties?.sheetId === sheetGid);
+  if (!matchingTab?.properties?.title) {
+    throw new GoogleSheetsError(
+      `Could not find sheet tab with GID ${sheetGid} in spreadsheet ${spreadsheetId}.`,
+      404
+    );
+  }
+
+  const sheetTitle = matchingTab.properties.title;
+  const escapedTab = `'${sheetTitle.replace(/'/g, "''")}'`;
+
+  const headerRange = encodeURIComponent(`${escapedTab}!A1:G1`);
+  const headerResp = await sheetsFetch<{ values?: unknown[][] }>(
+    `${SHEETS_API_BASE}/${encodeURIComponent(spreadsheetId)}/values/${headerRange}`,
+    accessToken
+  );
+  const firstHeaderCell = String(headerResp.values?.[0]?.[0] ?? '').trim();
+
+  if (!firstHeaderCell) {
+    await sheetsFetch(
+      `${SHEETS_API_BASE}/${encodeURIComponent(spreadsheetId)}/values/${headerRange}?valueInputOption=RAW`,
+      accessToken,
+      {
+        method: 'PUT',
+        body: JSON.stringify({
+          values: [[...TRADE_SHEET_HEADERS]],
+        }),
+      }
+    );
+  }
+
+  const idRange = encodeURIComponent(`${escapedTab}!A2:A`);
+  const existingResp = await sheetsFetch<{ values?: unknown[][] }>(
+    `${SHEETS_API_BASE}/${encodeURIComponent(spreadsheetId)}/values/${idRange}`,
+    accessToken
+  );
+
+  const seenIds = new Set<string>();
+  for (const row of existingResp.values || []) {
+    const id = String(row?.[0] ?? '').trim();
+    if (id) seenIds.add(id);
+  }
+
+  const newEntries: TradeRecord[] = [];
+  let alreadyAddedCount = 0;
+  for (const entry of entries) {
+    const cleanId = entry.id.trim();
+    if (!cleanId || seenIds.has(cleanId)) {
+      alreadyAddedCount += 1;
+      continue;
+    }
+    seenIds.add(cleanId);
+    newEntries.push(entry);
+  }
+
+  if (newEntries.length === 0) {
+    return {
+      status: 'already_added',
+      addedCount: 0,
+      skippedCount: alreadyAddedCount,
+      sheetTitle,
+      spreadsheetId,
+      sheetGid,
+      spreadsheetUrl,
+      message: `Already added — all ${alreadyAddedCount} ${
+        alreadyAddedCount === 1 ? 'entry is' : 'entries are'
+      } already in "${sheetTitle}".`,
+    };
+  }
+
+  const orderedNewEntries = [...newEntries].sort((a, b) => {
+    const dateCmp = a.tradeDate.localeCompare(b.tradeDate);
+    if (dateCmp !== 0) return dateCmp;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+
+  const appendRange = encodeURIComponent(`${escapedTab}!A:F`);
+  await sheetsFetch(
+    `${SHEETS_API_BASE}/${encodeURIComponent(spreadsheetId)}/values/${appendRange}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+    accessToken,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        values: orderedNewEntries.map(recordToRow),
+      }),
+    }
+  );
+
+  const gRange = encodeURIComponent(`${escapedTab}!G1:G2`);
+  await sheetsFetch(
+    `${SHEETS_API_BASE}/${encodeURIComponent(spreadsheetId)}/values/${gRange}?valueInputOption=USER_ENTERED`,
+    accessToken,
+    {
+      method: 'PUT',
+      body: JSON.stringify({
+        values: [['Total Profit&Loss'], [TOTAL_PROFIT_LOSS_FORMULA]],
+      }),
+    }
+  );
+
+  const addedLabel = newEntries.length === 1 ? '1 new entry' : `${newEntries.length} new entries`;
+  const skippedSuffix = alreadyAddedCount > 0 ? ` (${alreadyAddedCount} already added)` : '';
+
+  return {
+    status: 'synced',
+    addedCount: newEntries.length,
+    skippedCount: alreadyAddedCount,
+    sheetTitle,
+    spreadsheetId,
+    sheetGid,
+    spreadsheetUrl,
+    message: `Added ${addedLabel} to "${sheetTitle}"${skippedSuffix}.`,
+  };
+}
+

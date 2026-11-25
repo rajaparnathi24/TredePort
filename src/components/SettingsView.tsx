@@ -18,12 +18,22 @@ import {
   TRADE_SHEET_HEADERS,
   TRADE_SHEET_NAME,
 } from '../services/googleSheets';
+import {
+  DEFAULT_PERMANENT_SHEET_GID,
+  DEFAULT_PERMANENT_SHEET_URL,
+  DEFAULT_PERMANENT_SPREADSHEET_ID,
+  fetchPermanentSheetStatus,
+  type PermanentSheetStatus,
+  type PermanentSheetSyncResult,
+  type SyncPermanentOptions,
+} from '../services/backendSheetSync';
 import { extractSpreadsheetId, formatIndianDateTime, formatINR } from '../utils/formatters';
 import { GoogleSignInButton } from './GoogleSignInButton';
 
 interface SettingsViewProps {
   storageMode: StorageMode;
   googleState: GoogleConnectionState;
+  entriesCount: number;
   localEntriesCount: number;
   totalProfitLoss: number;
   isSyncing: boolean;
@@ -36,12 +46,14 @@ interface SettingsViewProps {
   onCreateSpreadsheet: () => Promise<void>;
   onConnectSpreadsheet: (spreadsheetId: string) => Promise<void>;
   onSyncNow: () => Promise<void>;
+  onSyncPermanentSheet: (options?: SyncPermanentOptions) => Promise<PermanentSheetSyncResult>;
   onMigrateLocalToSheet: () => Promise<void>;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   storageMode,
   googleState,
+  entriesCount,
   localEntriesCount,
   totalProfitLoss,
   isSyncing,
@@ -54,6 +66,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onCreateSpreadsheet,
   onConnectSpreadsheet,
   onSyncNow,
+  onSyncPermanentSheet,
   onMigrateLocalToSheet,
 }) => {
   const [sheetInput, setSheetInput] = useState(googleState.spreadsheetId || '');
@@ -61,11 +74,62 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [confirmMigrateOpen, setConfirmMigrateOpen] = useState(false);
 
+  const [permanentSheetStatus, setPermanentSheetStatus] = useState<PermanentSheetStatus>({
+    configured: false,
+    spreadsheetId: DEFAULT_PERMANENT_SPREADSHEET_ID,
+    sheetGid: DEFAULT_PERMANENT_SHEET_GID,
+    spreadsheetUrl: DEFAULT_PERMANENT_SHEET_URL,
+    serviceAccountEmail: null,
+  });
+  const [statusLoaded, setStatusLoaded] = useState(false);
+  const [isPermanentSyncing, setIsPermanentSyncing] = useState(false);
+  const [permanentSyncResult, setPermanentSyncResult] = useState<PermanentSheetSyncResult | null>(
+    null
+  );
+  const [permanentSyncError, setPermanentSyncError] = useState<string | null>(null);
+
   useEffect(() => {
     if (googleState.spreadsheetId && !sheetInput) {
       setSheetInput(googleState.spreadsheetId);
     }
   }, [googleState.spreadsheetId, sheetInput]);
+
+  useEffect(() => {
+    let active = true;
+    fetchPermanentSheetStatus()
+      .then((status) => {
+        if (active) {
+          setPermanentSheetStatus(status);
+          setStatusLoaded(true);
+        }
+      })
+      .catch(() => {
+        if (active) setStatusLoaded(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handlePermanentSheetSync = async () => {
+    setPermanentSyncError(null);
+    setPermanentSyncResult(null);
+    setIsPermanentSyncing(true);
+    try {
+      const result = await onSyncPermanentSheet({
+        serverConfigured: statusLoaded ? permanentSheetStatus.configured : undefined,
+        spreadsheetId: permanentSheetStatus.spreadsheetId,
+        sheetGid: permanentSheetStatus.sheetGid,
+      });
+      setPermanentSyncResult(result);
+    } catch (err) {
+      setPermanentSyncError(
+        err instanceof Error ? err.message : 'Unable to sync entries to the permanent Google Sheet.'
+      );
+    } finally {
+      setIsPermanentSyncing(false);
+    }
+  };
 
   const runAction = async (fn: () => Promise<void>, successText?: string) => {
     setErrorMessage(null);
@@ -140,6 +204,137 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <span>Dark</span>
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* Permanent Google Sheet Sync Card */}
+      <section
+        data-testid="permanent-sheet-sync-section"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-xl p-4 sm:p-6 space-y-4"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              Permanent Google Sheet Sync
+            </h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              Append newly added trade entries directly to your permanent Google Sheet tab. Entries
+              already in the sheet are skipped automatically.
+            </p>
+          </div>
+          <a
+            href={permanentSheetStatus.spreadsheetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-700 whitespace-nowrap shrink-0 self-start"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Open Sheet</span>
+            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+          </a>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3.5 text-xs">
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Spreadsheet ID</p>
+            <p
+              data-testid="permanent-spreadsheet-id"
+              className="mt-0.5 font-mono text-slate-900 dark:text-slate-100 break-all"
+            >
+              {permanentSheetStatus.spreadsheetId}
+            </p>
+          </div>
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Sheet GID</p>
+            <p
+              data-testid="permanent-sheet-gid"
+              className="mt-0.5 font-mono text-slate-900 dark:text-slate-100"
+            >
+              {permanentSheetStatus.sheetGid}
+            </p>
+          </div>
+        </div>
+
+        {statusLoaded && !permanentSheetStatus.configured && (
+          <div className="rounded-lg border border-amber-200 dark:border-amber-800/80 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-xs text-amber-900 dark:text-amber-200 space-y-1">
+            <p className="font-semibold">
+              {googleState.isSignedIn
+                ? 'Using your Google account to sync (service account optional)'
+                : 'Optional server service account setup'}
+            </p>
+            <p className="leading-relaxed">
+              {googleState.isSignedIn
+                ? 'Clicking Sync will connect directly using your signed-in Google account. For background service-account sync on Vercel/server, add '
+                : 'Sign in with Google to sync immediately, or add '}
+              <code className="font-mono bg-white/80 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                GOOGLE_SERVICE_ACCOUNT_JSON
+              </code>{' '}
+              in your environment Secrets and share the sheet as <strong>Editor</strong>.
+            </p>
+          </div>
+        )}
+
+        {permanentSyncResult && (
+          <div
+            role="status"
+            data-testid="permanent-sheet-sync-result"
+            className={`rounded-lg border px-4 py-3 text-sm flex items-start gap-2.5 ${
+              permanentSyncResult.status === 'synced'
+                ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200'
+                : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200'
+            }`}
+          >
+            <CheckCircle2
+              className={`w-4 h-4 mt-0.5 shrink-0 ${
+                permanentSyncResult.status === 'synced'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
+              aria-hidden="true"
+            />
+            <span>{permanentSyncResult.message}</span>
+          </div>
+        )}
+
+        {permanentSyncError && (
+          <div
+            role="alert"
+            data-testid="permanent-sheet-sync-error"
+            className="rounded-lg border border-red-200 dark:border-red-900/70 bg-red-50 dark:bg-red-950/50 px-4 py-3 text-sm text-red-800 dark:text-red-200 flex items-start gap-2.5"
+          >
+            <AlertCircle
+              className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0"
+              aria-hidden="true"
+            />
+            <span>{permanentSyncError}</span>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+          <p className="text-xs text-slate-600 dark:text-slate-300">
+            {googleState.isSignedIn ? (
+              <>
+                Ready to check <strong className="font-mono">{entriesCount}</strong>{' '}
+                {entriesCount === 1 ? 'trade entry' : 'trade entries'} and add any new rows to the
+                sheet.
+              </>
+            ) : (
+              'Sign in with Google below to enable one-click sync to your permanent Google Sheet.'
+            )}
+          </p>
+          <button
+            type="button"
+            data-testid="permanent-sheet-sync-btn"
+            onClick={handlePermanentSheetSync}
+            disabled={isPermanentSyncing || !googleState.isSignedIn}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl sm:rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 min-h-[44px] sm:min-h-0 whitespace-nowrap shrink-0"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${isPermanentSyncing ? 'animate-spin' : ''}`}
+              aria-hidden="true"
+            />
+            <span>{isPermanentSyncing ? 'Syncing to Sheet...' : 'Sync New Entries to Sheet'}</span>
+          </button>
         </div>
       </section>
 

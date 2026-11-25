@@ -41,6 +41,11 @@ import {
   saveLocalRecords,
   saveSpreadsheetMeta,
 } from './services/localRepository';
+import {
+  syncNewEntriesToPermanentSheet,
+  type PermanentSheetSyncResult,
+  type SyncPermanentOptions,
+} from './services/backendSheetSync';
 import { calculateTotalProfitLoss } from './utils/calculations';
 import { SidebarLayout, type ThemeMode } from './components/SidebarLayout';
 import { LoginView } from './components/LoginView';
@@ -407,6 +412,16 @@ export const App: React.FC = () => {
     await syncFromGoogleSheet(googleState.spreadsheetId);
   };
 
+  const handleSyncPermanentSheet = async (
+    options?: SyncPermanentOptions
+  ): Promise<PermanentSheetSyncResult> => {
+    const result = await syncNewEntriesToPermanentSheet(entries, options);
+    if (getAccessToken()) {
+      setGoogleState((prev) => (prev.hasSheetsToken ? prev : { ...prev, hasSheetsToken: true }));
+    }
+    return result;
+  };
+
   const handleMigrateLocalToCloud = async () => {
     if (!googleState.isSignedIn) {
       throw new Error('Sign in with Google before copying local entries.');
@@ -728,6 +743,7 @@ export const App: React.FC = () => {
         <SettingsView
           storageMode={storageMode}
           googleState={googleState}
+          entriesCount={entries.length}
           localEntriesCount={localEntries.length}
           totalProfitLoss={totalProfitLoss}
           isSyncing={isLoadingSheet || isLoadingCloud}
@@ -740,6 +756,7 @@ export const App: React.FC = () => {
           onCreateSpreadsheet={handleCreateSpreadsheet}
           onConnectSpreadsheet={handleConnectSpreadsheet}
           onSyncNow={handleSyncNow}
+          onSyncPermanentSheet={handleSyncPermanentSheet}
           onMigrateLocalToSheet={handleMigrateLocalToCloud}
         />
       )}

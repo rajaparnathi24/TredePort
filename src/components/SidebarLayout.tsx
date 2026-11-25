@@ -5,6 +5,9 @@ import {
   Clock,
   Home,
   LayoutDashboard,
+  Link2,
+  LogIn,
+  LogOut,
   Moon,
   Plus,
   PlusCircle,
@@ -188,33 +191,38 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               </p>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="flex flex-col gap-2 pt-0.5">
             <button
               type="button"
               onClick={() => handleSelectNav('settings')}
-              className="text-xs font-medium text-emerald-700 dark:text-accent-cyan hover:text-emerald-800 dark:hover:text-accent-cyan-hover underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan rounded"
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 dark:bg-accent-cyan text-white dark:text-burgundy-canvas text-xs font-semibold hover:bg-emerald-700 dark:hover:bg-accent-cyan-hover transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
             >
-              {storageMode === 'sheets'
-                ? 'Manage Sync'
-                : storageMode === 'cloud'
-                  ? 'Link Sheets'
-                  : 'Connect Account'}
+              <Link2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              <span>
+                {storageMode === 'sheets'
+                  ? 'Manage Sync'
+                  : storageMode === 'cloud'
+                    ? 'Link Sheets'
+                    : 'Connect Account'}
+              </span>
             </button>
             {isSignedIn ? (
               <button
                 type="button"
                 onClick={onSignOut}
-                className="text-xs font-medium text-slate-600 dark:text-burgundy-muted hover:text-slate-900 dark:hover:text-white underline underline-offset-2"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-slate-700 dark:text-slate-100 text-xs font-medium hover:bg-slate-100 dark:hover:bg-burgundy-hover transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
               >
-                Sign Out
+                <LogOut className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span>Sign Out</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={onOpenLogin}
-                className="text-xs font-medium text-slate-600 dark:text-burgundy-muted hover:text-slate-900 dark:hover:text-white underline underline-offset-2"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-burgundy-border-strong bg-white dark:bg-burgundy-elevated text-slate-700 dark:text-slate-100 text-xs font-medium hover:bg-slate-100 dark:hover:bg-burgundy-hover transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:focus-visible:outline-accent-cyan"
               >
-                Login Page
+                <LogIn className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span>Login Page</span>
               </button>
             )}
           </div>

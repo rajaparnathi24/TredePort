@@ -3,8 +3,10 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -57,6 +59,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
     tick: isDark ? '#94a3b8' : '#64748b',
     cursor: isDark ? '#1e293b' : '#f1f5f9',
     series: isDark ? '#10b981' : '#059669',
+    lossSeries: isDark ? '#f87171' : '#dc2626',
     activeDot: isDark ? '#34d399' : '#047857',
     activeDotStroke: isDark ? '#0f172a' : '#ffffff',
   };
@@ -357,13 +360,21 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ entries, isLoading, 
                   width={68}
                 />
                 <Tooltip cursor={{ fill: chartColors.cursor }} content={renderTooltip} />
+                <ReferenceLine y={0} stroke={chartColors.axis} />
                 <Bar
                   dataKey="profit"
                   fill={chartColors.series}
                   radius={[4, 4, 0, 0]}
                   maxBarSize={40}
                   isAnimationActive={false}
-                />
+                >
+                  {analysis.series.map((point) => (
+                    <Cell
+                      key={point.key}
+                      fill={point.profit < 0 ? chartColors.lossSeries : chartColors.series}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             ) : (
               <LineChart data={analysis.series} margin={{ top: 10, right: 8, left: -8, bottom: 4 }}>

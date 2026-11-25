@@ -96,13 +96,31 @@ export function validateTradeInput(
 
 /**
  * Calculates single-entry ROI (%).
- * Returns null if capital was omitted or is zero to prevent division by zero or misleading ROI.
+ * Returns null if capital was omitted or is zero to prevent division by zero.
  */
 export function calculateEntryROI(myProfit: number, capitalUsed: number | null): number | null {
   if (capitalUsed === null || !Number.isFinite(capitalUsed) || capitalUsed <= 0) {
     return null;
   }
   return (myProfit / capitalUsed) * 100;
+}
+
+/**
+ * Calculates ROI (%) for a trade using its own recorded capital when available,
+ * or falling back to overall total Capital Used so every trade shows ROI when capital exists.
+ */
+export function calculateTradeROI(
+  myProfit: number,
+  entryCapitalUsed: number | null,
+  totalCapitalUsed: number
+): number | null {
+  const effectiveCapital =
+    entryCapitalUsed !== null && Number.isFinite(entryCapitalUsed) && entryCapitalUsed > 0
+      ? entryCapitalUsed
+      : totalCapitalUsed > 0
+        ? totalCapitalUsed
+        : null;
+  return calculateEntryROI(myProfit, effectiveCapital);
 }
 
 /**
@@ -123,14 +141,13 @@ export function calculateTotalProfitLoss(entries: TradeRecord[]): number {
  * Computes overall dashboard metrics.
  * IMPORTANT:
  * - `myProfit` is already the user's 50% share and is NEVER divided by 2.
- * - Missing capital (`null`) is NEVER treated as zero in ROI calculations.
- * - Overall ROI is computed from entries with recorded capital when total recorded capital > 0.
+ * - Overall ROI is computed across EVERY trade using (Total Net Profit / Capital Used) × 100
+ *   whenever total recorded capital > 0 (returns null when Capital Used is 0 / not recorded).
  */
 export function calculateDashboardMetrics(entries: TradeRecord[]): DashboardMetrics {
   const totalEntries = entries.length;
   let totalNetProfit = 0;
   let totalCapitalUsed = 0;
-  let profitFromEntriesWithCapital = 0;
   let entriesWithCapitalCount = 0;
 
   for (const entry of entries) {
@@ -139,7 +156,6 @@ export function calculateDashboardMetrics(entries: TradeRecord[]): DashboardMetr
       totalCapitalUsed += entry.capitalUsed;
       if (entry.capitalUsed > 0) {
         entriesWithCapitalCount += 1;
-        profitFromEntriesWithCapital += entry.myProfit;
       }
     }
   }
@@ -149,11 +165,9 @@ export function calculateDashboardMetrics(entries: TradeRecord[]): DashboardMetr
   const averageProfit = totalEntries > 0 ? roundCurrency(totalNetProfit / totalEntries) : 0;
 
   const overallROI =
-    entriesWithCapitalCount > 0 && totalCapitalUsed > 0
-      ? (profitFromEntriesWithCapital / totalCapitalUsed) * 100
-      : null;
+    totalCapitalUsed > 0 ? (totalNetProfit / totalCapitalUsed) * 100 : null;
 
-  const isPartialROI = entriesWithCapitalCount > 0 && entriesWithCapitalCount < totalEntries;
+  const isPartialROI = false;
 
   return {
     totalNetProfit,
@@ -239,7 +253,6 @@ function summarizeEntriesInRange(entries: TradeRecord[], startISO: string, endIS
   let profit = 0;
   let capital = 0;
   let count = 0;
-  let profitWithCapital = 0;
   let entriesWithCapitalCount = 0;
 
   for (const entry of entries) {
@@ -250,7 +263,6 @@ function summarizeEntriesInRange(entries: TradeRecord[], startISO: string, endIS
         capital += entry.capitalUsed;
         if (entry.capitalUsed > 0) {
           entriesWithCapitalCount += 1;
-          profitWithCapital += entry.myProfit;
         }
       }
     }
@@ -259,8 +271,7 @@ function summarizeEntriesInRange(entries: TradeRecord[], startISO: string, endIS
   profit = roundCurrency(profit);
   capital = roundCurrency(capital);
 
-  const roi =
-    entriesWithCapitalCount > 0 && capital > 0 ? (profitWithCapital / capital) * 100 : null;
+  const roi = capital > 0 ? (profit / capital) * 100 : null;
 
   return {
     profit,
@@ -268,7 +279,7 @@ function summarizeEntriesInRange(entries: TradeRecord[], startISO: string, endIS
     count,
     roi,
     entriesWithCapitalCount,
-    isPartialROI: entriesWithCapitalCount > 0 && entriesWithCapitalCount < count,
+    isPartialROI: false,
   };
 }
 

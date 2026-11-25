@@ -6,6 +6,7 @@ import {
   calculateEntryROI,
   calculatePeriodAnalysis,
   calculateTotalProfitLoss,
+  calculateTradeROI,
   filterAndSortEntries,
   shiftAnchorDate,
   validateTradeInput,
@@ -48,8 +49,8 @@ test('entered profit is NEVER divided by 2 (already user 50% share)', () => {
   assert.equal(metrics.isPartialROI, false);
 });
 
-test('missing capital is NEVER treated as zero for ROI calculations', () => {
-  // No capital on any entry -> overallROI must be null
+test('ROI is calculated across every trade using Total Net Profit and Capital Used', () => {
+  // No capital on any entry -> overallROI must be null (no division by zero)
   const noCapitalMetrics = calculateDashboardMetrics([
     makeRecord('1', '2026-11-20', 15000, null),
     makeRecord('2', '2026-11-19', 5000, null),
@@ -59,9 +60,9 @@ test('missing capital is NEVER treated as zero for ROI calculations', () => {
   assert.equal(noCapitalMetrics.overallROI, null);
   assert.equal(noCapitalMetrics.entriesWithCapitalCount, 0);
 
-  // Mixed entries: Entry 1 has ₹10,000 profit on ₹1,00,000 capital (10% ROI),
-  // Entry 2 has ₹50,000 profit with NO capital recorded.
-  // Overall ROI must stay 10% (based on Entry 1), NOT jump to 60%!
+  // Mixed entries: Entry 1 has ₹10,000 profit on ₹1,00,000 capital,
+  // Entry 2 has ₹50,000 profit with blank capital.
+  // Overall ROI uses Total Net Profit (₹60,000) / Capital Used (₹1,00,000) * 100 = 60%
   const mixedMetrics = calculateDashboardMetrics([
     makeRecord('1', '2026-11-20', 10000, 100000),
     makeRecord('2', '2026-11-19', 50000, null),
@@ -69,11 +70,17 @@ test('missing capital is NEVER treated as zero for ROI calculations', () => {
   assert.equal(mixedMetrics.totalNetProfit, 60000);
   assert.equal(mixedMetrics.totalCapitalUsed, 100000);
   assert.equal(mixedMetrics.entriesWithCapitalCount, 1);
-  assert.equal(mixedMetrics.isPartialROI, true);
+  assert.equal(mixedMetrics.isPartialROI, false);
   assert.ok(mixedMetrics.overallROI !== null);
-  assert.equal(Number(mixedMetrics.overallROI.toFixed(2)), 10);
+  assert.equal(Number(mixedMetrics.overallROI.toFixed(2)), 60);
 
-  // Explicit zero capital yields null per-entry ROI (no Infinity)
+  // Per-trade ROI falls back to totalCapitalUsed when entry capital is omitted
+  assert.equal(calculateTradeROI(50000, null, mixedMetrics.totalCapitalUsed), 50);
+  assert.equal(calculateTradeROI(-5000, null, mixedMetrics.totalCapitalUsed), -5);
+  assert.equal(calculateTradeROI(5000, 50000, mixedMetrics.totalCapitalUsed), 10);
+  assert.equal(calculateTradeROI(5000, null, 0), null);
+
+  // Direct calculateEntryROI returns null on zero/missing capital (no Infinity)
   assert.equal(calculateEntryROI(5000, 0), null);
   assert.equal(calculateEntryROI(5000, null), null);
   assert.equal(calculateEntryROI(5000, 50000), 10);

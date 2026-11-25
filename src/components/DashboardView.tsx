@@ -3,6 +3,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,8 +15,8 @@ import type { NavSection, StorageMode, TradeRecord } from '../types/trade';
 import type { ThemeMode } from './SidebarLayout';
 import {
   calculateDashboardMetrics,
-  calculateEntryROI,
   calculatePeriodAnalysis,
+  calculateTradeROI,
   filterAndSortEntries,
 } from '../utils/calculations';
 import {
@@ -67,6 +69,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     tick: isDark ? '#94a3b8' : '#64748b',
     cursor: isDark ? '#1e293b' : '#f1f5f9',
     bar: isDark ? '#10b981' : '#059669',
+    lossBar: isDark ? '#f87171' : '#dc2626',
   };
 
   if (isLoading) {
@@ -206,11 +209,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {metrics.overallROI !== null ? formatPercentage(metrics.overallROI) : '—'}
             </p>
             <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">
-              {metrics.overallROI === null
-                ? 'Needs capital'
-                : metrics.isPartialROI
-                  ? `${metrics.entriesWithCapitalCount}/${metrics.totalEntries} with capital`
-                  : 'Profit ÷ capital × 100'}
+              {metrics.overallROI === null ? 'Needs capital' : 'Total Profit ÷ Capital × 100'}
             </p>
           </div>
         </div>
@@ -321,13 +320,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       );
                     }}
                   />
+                  <ReferenceLine y={0} stroke={chartColors.axis} />
                   <Bar
                     dataKey="profit"
                     fill={chartColors.bar}
                     radius={[4, 4, 0, 0]}
                     maxBarSize={32}
                     isAnimationActive={false}
-                  />
+                  >
+                    {dailyTrend.series.map((point) => (
+                      <Cell
+                        key={point.key}
+                        fill={point.profit < 0 ? chartColors.lossBar : chartColors.bar}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -365,7 +372,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                   {recentEntries.map((entry) => {
-                    const roi = calculateEntryROI(entry.myProfit, entry.capitalUsed);
+                    const roi = calculateTradeROI(
+                      entry.myProfit,
+                      entry.capitalUsed,
+                      metrics.totalCapitalUsed
+                    );
                     return (
                       <tr
                         key={entry.id}
@@ -383,7 +394,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         >
                           {formatINR(entry.myProfit)}
                         </td>
-                        <td className="py-3 pl-2 sm:pl-3 pr-4 sm:pr-6 text-right font-mono tabular-nums text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        <td
+                          className={`py-3 pl-2 sm:pl-3 pr-4 sm:pr-6 text-right font-mono tabular-nums text-xs whitespace-nowrap ${
+                            roi !== null && roi < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-slate-600 dark:text-slate-300'
+                          }`}
+                        >
                           {roi !== null ? formatPercentage(roi) : '—'}
                         </td>
                       </tr>

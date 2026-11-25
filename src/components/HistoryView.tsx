@@ -9,7 +9,8 @@ import type {
   ValidatedTradePayload,
 } from '../types/trade';
 import {
-  calculateEntryROI,
+  calculateDashboardMetrics,
+  calculateTradeROI,
   filterAndSortEntries,
   validateTradeInput,
 } from '../utils/calculations';
@@ -51,6 +52,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   const [deletingEntry, setDeletingEntry] = useState<TradeRecord | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const totalCapitalUsed = useMemo(
+    () => calculateDashboardMetrics(entries).totalCapitalUsed,
+    [entries]
+  );
 
   const filteredEntries = useMemo(
     () => filterAndSortEntries(entries, filters),
@@ -262,7 +268,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             {/* Mobile Compact Entry Rows (zero horizontal overflow) */}
             <div className="sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
               {filteredEntries.map((entry) => {
-                const roi = calculateEntryROI(entry.myProfit, entry.capitalUsed);
+                const roi = calculateTradeROI(entry.myProfit, entry.capitalUsed, totalCapitalUsed);
                 const dateFormatted = formatIndianDate(entry.tradeDate);
                 return (
                   <div
@@ -289,7 +295,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                           Capital:{' '}
                           {entry.capitalUsed !== null ? formatINR(entry.capitalUsed) : '—'}
                         </span>
-                        <span className="font-mono tabular-nums shrink-0">
+                        <span
+                          className={`font-mono tabular-nums shrink-0 ${
+                            roi !== null && roi < 0 ? 'text-red-600 dark:text-red-400' : ''
+                          }`}
+                        >
                           ROI: {roi !== null ? formatPercentage(roi) : '—'}
                         </span>
                       </div>
@@ -334,7 +344,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                   {filteredEntries.map((entry) => {
-                    const roi = calculateEntryROI(entry.myProfit, entry.capitalUsed);
+                    const roi = calculateTradeROI(
+                      entry.myProfit,
+                      entry.capitalUsed,
+                      totalCapitalUsed
+                    );
                     const dateFormatted = formatIndianDate(entry.tradeDate);
                     return (
                       <tr
@@ -356,7 +370,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         <td className="py-3.5 px-4 text-right font-mono tabular-nums text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           {entry.capitalUsed !== null ? formatINR(entry.capitalUsed) : '—'}
                         </td>
-                        <td className="py-3.5 px-4 text-right font-mono tabular-nums text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                        <td
+                          className={`py-3.5 px-4 text-right font-mono tabular-nums whitespace-nowrap ${
+                            roi !== null && roi < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
                           {roi !== null ? formatPercentage(roi) : '—'}
                         </td>
                         <td className="py-3.5 pl-4 pr-6 text-right whitespace-nowrap">
